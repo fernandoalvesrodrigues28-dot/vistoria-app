@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Vistoria Veicular</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#15171A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#15171A; --paper:#EFEAE0; --paper-2:#E4DDCC; --ink:#1C1B1A; --muted:#726B5E; --line:#C9C2B0;
+    --accent:#F2B705; --accent-ink:#3A2C00; --ok:#2F9E44; --ok-bg:#DFF3E3; --problem:#C6402E; --problem-bg:#FBE3DF;
+    --neutral-bad:#8A6D1E; --neutral-bad-bg:#F3E7C9; --whats:#25D366; --mail:#4285F4;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;display:flex;justify-content:center;min-height:100vh;}
+  #app{width:100%;max-width:520px;background:var(--paper);min-height:100vh;display:flex;flex-direction:column;position:relative;}
+  header.top{background:var(--bg);color:var(--paper);padding:18px 18px 14px;position:sticky;top:0;z-index:20;}
+  .wordmark{font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;letter-spacing:0.5px;margin:0;display:flex;align-items:baseline;gap:8px;justify-content:space-between;}
+  .wordmark span.dot{color:var(--accent);}
+  .gear-btn{background:none;border:1px solid #3a3d40;color:var(--paper);border-radius:6px;font-size:15px;padding:3px 9px;cursor:pointer;}
+  .plate-badge{margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:var(--paper);color:var(--ink);font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;padding:4px 10px;border-radius:4px;border:2px solid var(--accent);min-height:26px;}
+  nav.tabs{display:flex;background:var(--bg);position:sticky;top:78px;z-index:20;border-bottom:1px solid #000;}
+  nav.tabs button{flex:1;background:none;border:none;color:#8b8477;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.3px;padding:12px 8px;cursor:pointer;border-bottom:3px solid transparent;}
+  nav.tabs button.active{color:var(--paper);border-bottom-color:var(--accent);}
+  main{flex:1;padding-bottom:100px;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .card{background:#fff;margin:14px;border:1px solid var(--line);border-radius:6px;padding:14px;}
+  .card h2{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .card h2 small{font-family:'Inter';font-size:11px;font-weight:500;color:var(--muted);}
+  .field{margin-bottom:10px;}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;}
+  .field label.req::after{content:' *';color:var(--problem);}
+  .field input, .field textarea, .field select{width:100%;border:1px solid var(--line);border-radius:4px;padding:9px 10px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .jumpnav{display:flex;gap:8px;padding:0 14px 4px;overflow-x:auto;}
+  .jumpnav button{flex:none;background:var(--paper-2);border:1px solid var(--line);border-radius:16px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;}
+  .group-title{font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;margin:26px 14px 4px;padding-bottom:6px;border-bottom:2px solid var(--ink);}
+  .section-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;margin:18px 14px 2px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);}
+  .section-badge{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;background:var(--paper-2);color:var(--muted);border-radius:10px;padding:2px 8px;}
+  .section-badge.has-problem{background:var(--problem-bg);color:var(--problem);}
+  .item-row{background:#fff;margin:8px 14px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;}
+  .item-name{font-size:13.5px;font-weight:500;margin-bottom:8px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;}
+  .chip{border:1px solid var(--line);background:#fff;color:var(--muted);font-size:12px;font-weight:600;padding:5px 10px;border-radius:14px;cursor:pointer;}
+  .chip.sel-ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);}
+  .chip.sel-problem{background:var(--problem-bg);border-color:var(--problem);color:var(--problem);}
+  .chip.sel-neutral{background:var(--neutral-bad-bg);border-color:var(--neutral-bad);color:var(--neutral-bad);}
+  .item-extra{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .icon-btn{border:1px solid var(--line);background:var(--paper-2);border-radius:4px;font-size:11px;font-weight:600;padding:5px 9px;color:var(--ink);cursor:pointer;}
+  .icon-btn.on{background:var(--accent);border-color:var(--accent-ink);}
+  .note-box{display:none;margin-top:8px;}
+  .note-box.open{display:block;}
+  .note-box textarea{width:100%;border:1px solid var(--line);border-radius:4px;padding:8px;font-family:inherit;font-size:13px;min-height:52px;}
+  .thumb-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+  .thumb{position:relative;width:56px;height:56px;border-radius:4px;overflow:hidden;border:1px solid var(--line);}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb .rm{position:absolute;top:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:11px;line-height:1;padding:3px 5px;border:none;}
+  .bottombar{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;z-index:30;}
+  .bottombar-inner{width:100%;max-width:520px;background:var(--bg);padding:12px 14px;display:flex;align-items:center;gap:12px;border-top:1px solid #000;}
+  .problem-count{color:var(--paper);font-family:'Oswald',sans-serif;font-size:13px;flex:1;}
+  .problem-count b{color:var(--accent);font-size:16px;}
+  .btn-primary{background:var(--accent);color:var(--accent-ink);border:none;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:0.3px;padding:12px 18px;border-radius:5px;cursor:pointer;}
+  .btn-ghost{background:none;border:1px solid var(--line);color:var(--ink);font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;padding:9px 14px;border-radius:5px;cursor:pointer;}
+  .btn-danger{background:none;border:1px solid var(--problem);color:var(--problem);font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;padding:8px 12px;border-radius:5px;cursor:pointer;}
+  .btn-whats{background:var(--whats);color:#fff;border:none;font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;padding:11px 12px;border-radius:5px;cursor:pointer;flex:1;}
+  .hist-card{background:#fff;margin:12px 14px;border:1px solid var(--line);border-radius:6px;padding:12px 14px;cursor:pointer;}
+  .hist-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .hist-plate{font-family:'Oswald',sans-serif;font-weight:700;font-size:17px;}
+  .hist-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .hist-badge{font-size:11px;font-weight:700;padding:4px 9px;border-radius:12px;background:var(--ok-bg);color:var(--ok);white-space:nowrap;}
+  .hist-badge.has-problem{background:var(--problem-bg);color:var(--problem);}
+  .hist-badge.pending{background:var(--neutral-bad-bg);color:var(--neutral-bad);}
+  .empty-state{margin:40px 24px;text-align:center;color:var(--muted);font-size:14px;}
+  #detail,#settings{position:fixed;inset:0;background:var(--paper);z-index:50;display:none;flex-direction:column;overflow-y:auto;}
+  #detail.open,#settings.open{display:flex;}
+  #detail .dhead,#settings .dhead{background:var(--bg);color:var(--paper);padding:16px 14px;position:sticky;top:0;z-index:5;}
+  #detail .dhead .close,#settings .dhead .close{background:none;border:none;color:var(--paper);font-size:22px;position:absolute;right:14px;top:14px;}
+  .detail-item{background:#fff;margin:8px 14px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;}
+  .detail-item .st{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;margin-top:4px;}
+  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:20px;font-size:13px;z-index:100;opacity:0;transition:opacity .25s;pointer-events:none;max-width:85%;text-align:center;}
+  .toast.show{opacity:1;}
+  .sign-wrap{background:#fff;margin:14px;border:1px solid var(--line);border-radius:6px;padding:14px;}
+  .sign-wrap canvas{width:100%;height:160px;border:1.5px dashed var(--line);border-radius:6px;touch-action:none;background:#fff;}
+  .sign-actions{display:flex;gap:10px;margin-top:10px;}
+  .share-row{display:flex;gap:10px;margin:14px;}
+  .approved-box{background:var(--ok-bg);border:1px solid var(--ok);color:var(--ok);border-radius:6px;padding:10px 12px;margin:14px;font-size:13px;font-weight:600;}
+  .help-txt{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.4;}
+  @media print{
+    header.top, nav.tabs, .bottombar, .jumpnav, #detail .dhead, .sign-wrap, .share-row{display:none !important;}
+    #detail{position:static;background:#fff;}
+    body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <p class="wordmark">
+      <span>VISTORIA<span class="dot">.</span>VEICULAR</span>
+      <button class="gear-btn" onclick="openSettings()">&#9881;</button>
+    </p>
+    <div class="plate-badge" id="plateBadge">SEM PLACA</div>
+  </header>
+  <nav class="tabs">
+    <button class="active" data-tab="novo">NOVA VISTORIA</button>
+    <button data-tab="historico">HISTÓRICO</button>
+  </nav>
+  <main>
+    <section class="view active" id="view-novo">
+      <div class="card">
+        <h2>Dados do veículo</h2>
+        <div class="field-row">
+          <div class="field"><label>Placa</label><input id="f-plate" placeholder="ABC1D23" autocapitalize="characters"></div>
+          <div class="field"><label>KM</label><input id="f-km" inputmode="numeric" placeholder="0"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Marca (FIPE)</label><select id="f-marca"><option value="">Carregando...</option></select></div>
+          <div class="field"><label>Modelo (FIPE)</label><select id="f-modelo"><option value="">Selecione a marca</option></select></div>
+        </div>
+        <div class="field"><label>Ano (FIPE)</label><select id="f-ano"><option value="">Selecione o modelo</option></select></div>
+        <div class="field"><label>Modelo / Marca (texto final)</label><input id="f-model" placeholder="Preenchido pela FIPE ou digite manualmente"></div>
+        <div class="field-row">
+          <div class="field"><label>Cor</label><input id="f-color" placeholder="Ex: Prata"></div>
+          <div class="field"><label>Responsável (mecânico)</label><input id="f-mechanic" placeholder="Seu nome"></div>
+        </div>
+        <div class="field"><label>Data</label><input id="f-date" type="date"></div>
+      </div>
+
+      <div class="card">
+        <h2>Dados do cliente <small>campos com * são obrigatórios</small></h2>
+        <div class="field"><label>Nome completo</label><input id="c-nome" placeholder="Nome do cliente"></div>
+        <div class="field-row">
+          <div class="field"><label>CPF (opcional)</label><input id="c-cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14"></div>
+          <div class="field"><label class="req">Telefone / WhatsApp</label><input id="c-tel" inputmode="tel" placeholder="(00) 00000-0000" maxlength="15"></div>
+        </div>
+        <div class="field"><label class="req">E-mail</label><input id="c-email" type="email" placeholder="cliente@email.com"></div>
+        <div class="field-row">
+          <div class="field"><label>CEP</label><input id="c-cep" inputmode="numeric" placeholder="00000-000" maxlength="9"></div>
+          <div class="field"><label>Número</label><input id="c-numero" placeholder="Nº"></div>
+        </div>
+        <div class="field"><label>Endereço</label><input id="c-endereco" placeholder="Rua, bairro"></div>
+        <div class="field"><label>Cidade / UF</label><input id="c-cidade" placeholder="Cidade - UF"></div>
+      </div>
+
+      <div class="jumpnav" id="jumpnav"></div>
+      <div id="checklist-root"></div>
+    </section>
+
+    <section class="view" id="view-historico">
+      <div id="hist-list"></div>
+    </section>
+  </main>
+
+  <div class="bottombar" id="bar-novo">
+    <div class="bottombar-inner">
+      <div class="problem-count"><b id="problemCount">0</b> problema(s) encontrado(s)</div>
+      <button class="btn-ghost" onclick="resetForm(true)">Limpar</button>
+      <button class="btn-primary" onclick="saveInspection()">Salvar vistoria</button>
+    </div>
+  </div>
+
+  <div id="detail">
+    <div class="dhead">
+      <button class="close" onclick="closeDetail()">&times;</button>
+      <p class="wordmark" id="d-plate" style="font-size:19px;"></p>
+      <div class="hist-meta" id="d-meta" style="color:#cfc9ba;"></div>
+    </div>
+    <div id="detail-approval"></div>
+    <div id="detail-body"></div>
+    <div id="detail-actions"></div>
+  </div>
+
+  <div id="settings">
+    <div class="dhead">
+      <button class="close" onclick="closeSettings()">&times;</button>
+      <p class="wordmark" style="font-size:19px;">Configurações</p>
+    </div>
+    <div class="card">
+      <h2>Envio automático de e-mail</h2>
+      <div class="field">
+        <label>URL do Google Apps Script (Web App)</label>
+        <input id="s-webapp" placeholder="https://script.google.com/macros/s/.../exec">
+        <div class="help-txt">Cole aqui a URL gerada ao publicar o script (veja o passo a passo que te enviei). Sem essa URL, o PDF não é enviado automaticamente.</div>
+      </div>
+      <div class="field">
+        <label>E-mail do mecânico (recebe cópia da vistoria aprovada)</label>
+        <input id="s-mechanic-email" type="email" placeholder="fernandoalvesrodrigues28@gmail.com">
+      </div>
+      <button class="btn-primary" style="width:100%;" onclick="saveSettings()">Salvar configurações</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none">
+<input type="file" id="fileGallery" accept="image/*" style="display:none">
+
+<script>
+/* ============ CONFIGURAÇÕES (localStorage) ============ */
+function getSettings(){
+  return {
+    webappUrl: localStorage.getItem('cfg_webapp_url') || '',
+    mechanicEmail: localStorage.getItem('cfg_mechanic_email') || 'fernandoalvesrodrigues28@gmail.com'
+  };
+}
+function openSettings(){
+  const s = getSettings();
+  document.getElementById('s-webapp').value = s.webappUrl;
+  document.getElementById('s-mechanic-email').value = s.mechanicEmail;
+  document.getElementById('settings').classList.add('open');
+}
+function closeSettings(){ document.getElementById('settings').classList.remove('open'); }
+function saveSettings(){
+  localStorage.setItem('cfg_webapp_url', document.getElementById('s-webapp').value.trim());
+  localStorage.setItem('cfg_mechanic_email', document.getElementById('s-mechanic-email').value.trim());
+  showToast('Configurações salvas.');
+  closeSettings();
+}
+
+/* ============ DADOS DO CHECKLIST ============ */
+const GROUPS = [
+  { key:'externo', title:'Parte Externa' },
+  { key:'interno', title:'Parte Interna' },
+  { key:'acessorios', title:'Acessórios Obrigatórios' }
+];
+
+const CATEGORIES = [
+  { key:'vidros', group:'externo', title:'Vidros', statusOptions:['OK','Trincado','Quebrado','Arranhado'],
+    items:[{name:'Parabrisa dianteiro'},{name:'Parabrisa traseiro'},{name:'Vidro lateral dianteiro esquerdo'},{name:'Vidro lateral dianteiro direito'},{name:'Vidro lateral traseiro esquerdo'},{name:'Vidro lateral traseiro direito'}] },
+  { key:'lataria', group:'externo', title:'Lataria', statusOptions:['OK','Arranhado','Amassado','Batida'],
+    items:[{name:'Capô'},{name:'Teto externo'},{name:'Porta dianteira esquerda'},{name:'Porta dianteira direita'},{name:'Porta traseira esquerda'},{name:'Porta traseira direita'},{name:'Paralama dianteiro esquerdo'},{name:'Paralama dianteiro direito'},{name:'Paralama traseiro esquerdo'},{name:'Paralama traseiro direito'},{name:'Tampa traseira / porta-malas'},{name:'Para-choque dianteiro'},{name:'Para-choque traseiro'}] },
+  { key:'iluminacao', group:'externo', title:'Iluminação', statusOptions:['OK','Queimado','Quebrado','Trincado'],
+    items:[{name:'Farol dianteiro esquerdo'},{name:'Farol dianteiro direito'},{name:'Lanterna traseira esquerda'},{name:'Lanterna traseira direita'},{name:'Luz de freio'},{name:'Luz de ré'},{name:'Pisca dianteiro esquerdo'},{name:'Pisca dianteiro direito'},{name:'Pisca traseiro esquerdo'},{name:'Pisca traseiro direito'},{name:'Luz de placa'}] },
+  { key:'rodas', group:'externo', title:'Rodas e pneus', statusOptions:['OK','Desgastado','Danificado'],
+    items:[
+      {name:'Pneu dianteiro esquerdo', options:['OK','Careca','Bolha ou corte','Murcho']},
+      {name:'Pneu dianteiro direito', options:['OK','Careca','Bolha ou corte','Murcho']},
+      {name:'Pneu traseiro esquerdo', options:['OK','Careca','Bolha ou corte','Murcho']},
+      {name:'Pneu traseiro direito', options:['OK','Careca','Bolha ou corte','Murcho']},
+      {name:'Rodas / calotas', options:['OK','Amassada','Trincada','Faltando']}
+    ]},
+  { key:'ext-outros', group:'externo', title:'Outros itens externos', statusOptions:['OK','Danificado','Desgastado','Ausente'],
+    items:[{name:'Retrovisor esquerdo'},{name:'Retrovisor direito'},{name:'Antena'},{name:'Palhetas do limpador'}] },
+
+  { key:'estofados', group:'interno', title:'Estofados e revestimento', statusOptions:['OK','Manchado','Rasgado','Sujo'],
+    items:[{name:'Banco dianteiro motorista'},{name:'Banco dianteiro passageiro'},{name:'Banco traseiro'},{name:'Forro do teto'},{name:'Carpete / tapetes'}] },
+  { key:'eletricos', group:'interno', title:'Elétrica e comandos', statusOptions:['Funciona','Não funciona','Não possui'],
+    items:[{name:'Ar condicionado'},{name:'Vidro elétrico dianteiro esquerdo'},{name:'Vidro elétrico dianteiro direito'},{name:'Vidro elétrico traseiro esquerdo'},{name:'Vidro elétrico traseiro direito'},{name:'Trava elétrica'},{name:'Som / multimídia'},{name:'Direção assistida'}] },
+  { key:'seguranca', group:'interno', title:'Segurança interna', statusOptions:['OK','Danificado','Ausente'],
+    items:[{name:'Cinto dianteiro esquerdo'},{name:'Cinto dianteiro direito'},{name:'Cinto traseiro'}] },
+  { key:'combustivel', group:'interno', title:'Combustível', statusOptions:['Cheio','3/4','1/2','1/4','Reserva'], informational:true,
+    items:[{name:'Nível de combustível na entrada'}] },
+
+  { key:'obrigatorios', group:'acessorios', title:'Itens obrigatórios', statusOptions:['Presente','Ausente'],
+    items:[{name:'Documento do veículo (CRLV)'},{name:'Triângulo'},{name:'Macaco'},{name:'Chave de roda'},
+           {name:'Estepe', options:['Presente - aro de aço','Presente - roda de liga leve','Ausente']}] }
+];
+
+function getOptions(cat, item){ return item.options || cat.statusOptions; }
+function classify(status){
+  if(status.startsWith('OK') || status.startsWith('Presente') || status==='Funciona') return 'sel-ok';
+  if(['Desgastado','Sujo','Não possui','Murcho'].includes(status)) return 'sel-neutral';
+  return 'sel-problem';
+}
+function classifyForCat(cat, status){ return cat.informational ? 'sel-neutral' : classify(status); }
+
+let state = null;
+let activePhotoTarget = null;
+let currentDetailId = null;
+
+function slug(s){ return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-'); }
+
+function blankState(){
+  const items = {};
+  CATEGORIES.forEach(cat=>{
+    items[cat.key] = {};
+    cat.items.forEach(it=>{ items[cat.key][it.name] = { status:getOptions(cat,it)[0], note:'', photos:[] }; });
+  });
+  return {
+    plate:'', km:'', model:'', color:'', mechanic:'', date:new Date().toISOString().slice(0,10),
+    cliente:{ nome:'', cpf:'', tel:'', email:'', cep:'', numero:'', endereco:'', cidade:'' },
+    items, signature:null, approvedAt:null
+  };
+}
+
+/* ============ RENDER CHECKLIST ============ */
+function renderChecklist(){
+  const root = document.getElementById('checklist-root');
+  const jump = document.getElementById('jumpnav');
+  root.innerHTML=''; jump.innerHTML='';
+  GROUPS.forEach(grp=>{
+    const gTitle=document.createElement('div'); gTitle.className='group-title'; gTitle.id='grp-'+grp.key; gTitle.textContent=grp.title;
+    root.appendChild(gTitle);
+    const jbtn=document.createElement('button'); jbtn.textContent=grp.title;
+    jbtn.onclick=()=>document.getElementById('grp-'+grp.key).scrollIntoView({behavior:'smooth',block:'start'});
+    jump.appendChild(jbtn);
+
+    CATEGORIES.filter(c=>c.group===grp.key).forEach(cat=>{
+      const secTitle=document.createElement('div'); secTitle.className='section-title'; secTitle.id='sec-'+cat.key;
+      secTitle.innerHTML = cat.informational ? `<span>${cat.title}</span>` : `<span>${cat.title}</span><span class="section-badge" id="badge-${cat.key}">0</span>`;
+      root.appendChild(secTitle);
+
+      cat.items.forEach(it=>{
+        const name=it.name; const opts=getOptions(cat,it);
+        const rowId='row-'+slug(cat.key+'-'+name);
+        const row=document.createElement('div'); row.className='item-row'; row.id=rowId;
+        const chipsHtml = opts.map(opt=>`<button type="button" class="chip" data-cat="${cat.key}" data-item="${encodeURIComponent(name)}" data-status="${opt}">${opt}</button>`).join('');
+        row.innerHTML = `
+          <div class="item-name">${name}</div>
+          <div class="chips">${chipsHtml}</div>
+          <div class="item-extra">
+            <button type="button" class="icon-btn" data-note-toggle="${encodeURIComponent(name)}" data-cat="${cat.key}">+ nota</button>
+            <button type="button" class="icon-btn" data-photo-cam="${encodeURIComponent(name)}" data-cat="${cat.key}">Câmera</button>
+            <button type="button" class="icon-btn" data-photo-gal="${encodeURIComponent(name)}" data-cat="${cat.key}">Galeria</button>
+          </div>
+          <div class="note-box" id="note-${rowId}"><textarea placeholder="Observação..." data-note-input="${encodeURIComponent(name)}" data-cat="${cat.key}"></textarea></div>
+          <div class="thumb-row" id="thumbs-${rowId}"></div>
+        `;
+        root.appendChild(row);
+      });
+    });
+  });
+
+  root.querySelectorAll('.chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const cat=btn.dataset.cat, item=decodeURIComponent(btn.dataset.item), status=btn.dataset.status;
+      state.items[cat][item].status = status;
+      refreshRow(cat,item); refreshCounters();
+    });
+  });
+  root.querySelectorAll('[data-note-toggle]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const item=decodeURIComponent(btn.dataset.noteToggle), cat=btn.dataset.cat;
+      const box=document.getElementById('note-'+'row-'+slug(cat+'-'+item));
+      box.classList.toggle('open'); btn.classList.toggle('on', box.classList.contains('open'));
+    });
+  });
+  root.querySelectorAll('[data-note-input]').forEach(ta=>{
+    ta.addEventListener('input', ()=>{ state.items[ta.dataset.cat][decodeURIComponent(ta.dataset.noteInput)].note = ta.value; });
+  });
+  root.querySelectorAll('[data-photo-cam]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ activePhotoTarget={cat:btn.dataset.cat,item:decodeURIComponent(btn.dataset.photoCam)}; document.getElementById('fileCamera').click(); });
+  });
+  root.querySelectorAll('[data-photo-gal]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ activePhotoTarget={cat:btn.dataset.cat,item:decodeURIComponent(btn.dataset.photoGal)}; document.getElementById('fileGallery').click(); });
+  });
+
+  CATEGORIES.forEach(cat=> cat.items.forEach(it=> refreshRow(cat.key, it.name)));
+  refreshCounters();
+}
+
+function refreshRow(catKey, itemName){
+  const cat = CATEGORIES.find(c=>c.key===catKey);
+  const data = state.items[catKey][itemName];
+  const rowId='row-'+slug(catKey+'-'+itemName);
+  const row=document.getElementById(rowId);
+  if(!row) return;
+  row.querySelectorAll('.chip').forEach(chip=>{
+    chip.classList.remove('sel-ok','sel-problem','sel-neutral');
+    if(decodeURIComponent(chip.dataset.item)===itemName && chip.dataset.status===data.status){
+      chip.classList.add(classifyForCat(cat, data.status));
+    }
+  });
+  const thumbRow=document.getElementById('thumbs-'+rowId);
+  thumbRow.innerHTML = data.photos.map((p,i)=>`<div class="thumb"><img src="${p}"><button class="rm" data-rm-photo="${i}" data-cat="${catKey}" data-item="${encodeURIComponent(itemName)}">&times;</button></div>`).join('');
+  thumbRow.querySelectorAll('[data-rm-photo]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const idx=parseInt(b.dataset.rmPhoto,10);
+      state.items[b.dataset.cat][decodeURIComponent(b.dataset.item)].photos.splice(idx,1);
+      refreshRow(b.dataset.cat, decodeURIComponent(b.dataset.item));
+    });
+  });
+}
+
+function refreshCounters(){
+  let total=0;
+  CATEGORIES.forEach(cat=>{
+    if(cat.informational) return;
+    let count=0;
+    cat.items.forEach(it=>{ if(classifyForCat(cat, state.items[cat.key][it.name].status)==='sel-problem') count++; });
+    total+=count;
+    const badge=document.getElementById('badge-'+cat.key);
+    if(badge){ badge.textContent=count; badge.classList.toggle('has-problem', count>0); }
+  });
+  document.getElementById('problemCount').textContent = total;
+  const plate = state.plate.trim();
+  document.getElementById('plateBadge').textContent = plate ? plate.toUpperCase() : 'SEM PLACA';
+}
+
+/* ============ FOTOS (câmera ou galeria) ============ */
+function handlePhotoFile(file){
+  if(!file || !activePhotoTarget) return;
+  const img=new Image(); const reader=new FileReader();
+  reader.onload = (ev)=>{
+    img.onload=()=>{
+      const maxW=800; const scale=Math.min(1, maxW/img.width);
+      const canvas=document.createElement('canvas'); canvas.width=img.width*scale; canvas.height=img.height*scale;
+      const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.6);
+      state.items[activePhotoTarget.cat][activePhotoTarget.item].photos.push(dataUrl);
+      refreshRow(activePhotoTarget.cat, activePhotoTarget.item);
+      activePhotoTarget=null;
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+document.getElementById('fileCamera').addEventListener('change', e=>{ handlePhotoFile(e.target.files[0]); e.target.value=''; });
+document.getElementById('fileGallery').addEventListener('change', e=>{ handlePhotoFile(e.target.files[0]); e.target.value=''; });
+
+/* ============ MÁSCARAS ============ */
+function maskCPF(v){
+  v = v.replace(/\D/g,'').slice(0,11);
+  v = v.replace(/(\d{3})(\d)/,'$1.$2');
+  v = v.replace(/(\d{3})(\d)/,'$1.$2');
+  v = v.replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+  return v;
+}
+function maskPhone(v){
+  v = v.replace(/\D/g,'').slice(0,11);
+  if(v.length>10) v = v.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');
+  else if(v.length>5) v = v.replace(/(\d{2})(\d{4})(\d{0,4})/,'($1) $2-$3');
+  else if(v.length>2) v = v.replace(/(\d{2})(\d{0,5})/,'($1) $2');
+  else v = v.replace(/(\d*)/,'($1');
+  return v;
+}
+document.getElementById('c-cpf').addEventListener('input', e=>{ e.target.value = maskCPF(e.target.value); state.cliente.cpf = e.target.value; });
+document.getElementById('c-tel').addEventListener('input', e=>{ e.target.value = maskPhone(e.target.value); state.cliente.tel = e.target.value; });
+
+/* ============ CAMPOS VEÍCULO / CLIENTE ============ */
+['f-plate','f-km','f-model','f-color','f-mechanic','f-date'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    state[id.replace('f-','')] = document.getElementById(id).value;
+    if(id==='f-plate') refreshCounters();
+  });
+});
+const clienteFieldMap = {'c-nome':'nome','c-email':'email','c-cep':'cep','c-numero':'numero','c-endereco':'endereco','c-cidade':'cidade'};
+Object.keys(clienteFieldMap).forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{ state.cliente[clienteFieldMap[id]] = document.getElementById(id).value; });
+});
+document.getElementById('c-cep').addEventListener('blur', async ()=>{
+  const digits = state.cliente.cep.replace(/\D/g,'');
+  if(digits.length!==8) return;
+  try{
+    const r = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+    const d = await r.json();
+    if(!d.erro){
+      document.getElementById('c-endereco').value = `${d.logradouro||''}${d.logradouro&&d.bairro?', ':''}${d.bairro||''}`;
+      document.getElementById('c-cidade').value = `${d.localidade||''}${d.localidade&&d.uf?' - ':''}${d.uf||''}`;
+      state.cliente.endereco = document.getElementById('c-endereco').value;
+      state.cliente.cidade = document.getElementById('c-cidade').value;
+    }
+  }catch(e){ /* sem internet: cliente preenche manualmente */ }
+});
+
+/* ============ CATÁLOGO FIPE (marca/modelo/ano) ============ */
+const FIPE_BASE = 'https://parallelum.com.br/fipe/api/v1/carros';
+async function loadMarcas(){
+  const sel = document.getElementById('f-marca');
+  try{
+    const r = await fetch(`${FIPE_BASE}/marcas`);
+    const list = await r.json();
+    sel.innerHTML = '<option value="">Selecione a marca</option>' + list.map(m=>`<option value="${m.codigo}">${m.nome}</option>`).join('');
+  }catch(e){
+    sel.innerHTML = '<option value="">Sem internet - digite manualmente abaixo</option>';
+  }
+}
+document.getElementById('f-marca').addEventListener('change', async (e)=>{
+  const codigo = e.target.value;
+  const modeloSel = document.getElementById('f-modelo');
+  const anoSel = document.getElementById('f-ano');
+  anoSel.innerHTML = '<option value="">Selecione o modelo</option>';
+  if(!codigo){ modeloSel.innerHTML='<option value="">Selecione a marca</option>'; return; }
+  modeloSel.innerHTML = '<option value="">Carregando...</option>';
+  try{
+    const r = await fetch(`${FIPE_BASE}/marcas/${codigo}/modelos`);
+    const data = await r.json();
+    modeloSel.innerHTML = '<option value="">Selecione o modelo</option>' + data.modelos.map(m=>`<option value="${m.codigo}">${m.nome}</option>`).join('');
+  }catch(e){ modeloSel.innerHTML = '<option value="">Erro ao carregar</option>'; }
+});
+document.getElementById('f-modelo').addEventListener('change', async (e)=>{
+  const codigoModelo = e.target.value;
+  const codigoMarca = document.getElementById('f-marca').value;
+  const anoSel = document.getElementById('f-ano');
+  if(!codigoModelo){ anoSel.innerHTML='<option value="">Selecione o modelo</option>'; return; }
+  anoSel.innerHTML = '<option value="">Carregando...</option>';
+  try{
+    const r = await fetch(`${FIPE_BASE}/marcas/${codigoMarca}/modelos/${codigoModelo}/anos`);
+    const list = await r.json();
+    anoSel.innerHTML = '<option value="">Selecione o ano</option>' + list.map(a=>`<option value="${a.codigo}">${a.nome}</option>`).join('');
+  }catch(e){ anoSel.innerHTML = '<option value="">Erro ao carregar</option>'; }
+});
+document.getElementById('f-ano').addEventListener('change', (e)=>{
+  if(!e.target.value) return;
+  const marcaTxt = document.getElementById('f-marca').selectedOptions[0].textContent;
+  const modeloTxt = document.getElementById('f-modelo').selectedOptions[0].textContent;
+  const anoTxt = e.target.selectedOptions[0].textContent;
+  const combined = `${marcaTxt} ${modeloTxt} (${anoTxt})`;
+  document.getElementById('f-model').value = combined;
+  state.model = combined;
+  refreshCounters();
+});
+loadMarcas();
+
+function resetForm(confirmFirst){
+  if(confirmFirst && !confirm('Limpar todos os campos da vistoria atual?')) return;
+  state = blankState();
+  ['plate','km','model','color','mechanic'].forEach(k=> document.getElementById('f-'+k).value='');
+  document.getElementById('f-marca').value=''; document.getElementById('f-modelo').innerHTML='<option value="">Selecione a marca</option>'; document.getElementById('f-ano').innerHTML='<option value="">Selecione o modelo</option>';
+  Object.keys(clienteFieldMap).forEach(id=> document.getElementById(id).value='');
+  document.getElementById('c-cpf').value=''; document.getElementById('c-tel').value='';
+  document.getElementById('f-date').value = state.date;
+  renderChecklist();
+}
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
+
+/* ============ INDEXEDDB ============ */
+const DB_NAME='vistoria_db', DB_VERSION=1, STORE='inspecoes';
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = ()=>{ const db=req.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE,{keyPath:'id'}); };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function dbPut(record){ const db=await openDB(); return new Promise((resolve,reject)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(record); tx.oncomplete=()=>resolve(true); tx.onerror=()=>reject(tx.error); }); }
+async function dbGet(id){ const db=await openDB(); return new Promise((resolve,reject)=>{ const req=db.transaction(STORE,'readonly').objectStore(STORE).get(id); req.onsuccess=()=>resolve(req.result||null); req.onerror=()=>reject(req.error); }); }
+async function dbGetAll(){ const db=await openDB(); return new Promise((resolve,reject)=>{ const req=db.transaction(STORE,'readonly').objectStore(STORE).getAll(); req.onsuccess=()=>resolve(req.result||[]); req.onerror=()=>reject(req.error); }); }
+async function dbDelete(id){ const db=await openDB(); return new Promise((resolve,reject)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).delete(id); tx.oncomplete=()=>resolve(true); tx.onerror=()=>reject(tx.error); }); }
+
+/* ============ SALVAR VISTORIA ============ */
+async function saveInspection(){
+  if(!state.plate.trim()){ alert('Informe ao menos a placa do veículo.'); return; }
+  if(!state.cliente.email.trim()){ alert('O e-mail do cliente é obrigatório.'); document.getElementById('c-email').focus(); return; }
+  if(!state.cliente.tel.trim()){ alert('O telefone/WhatsApp do cliente é obrigatório.'); document.getElementById('c-tel').focus(); return; }
+  const id = 'insp_'+Date.now();
+  let problemCount=0;
+  CATEGORIES.forEach(cat=>{ if(cat.informational) return; cat.items.forEach(it=>{ if(classifyForCat(cat, state.items[cat.key][it.name].status)==='sel-problem') problemCount++; }); });
+  const record = { id, ...JSON.parse(JSON.stringify(state)), problemCount, createdAt:new Date().toISOString() };
+  try{
+    await dbPut(record);
+    showToast('Vistoria salva! Agora colete a assinatura do cliente.');
+    resetForm(false);
+    document.getElementById('f-date').value = state.date;
+    switchTab('historico');
+    openDetail(id);
+  }catch(e){
+    console.error(e);
+    showToast('Erro ao salvar: '+(e && e.message ? e.message : 'tente novamente'));
+  }
+}
+
+/* ============ HISTÓRICO ============ */
+async function renderHistory(){
+  const list = (await dbGetAll()).sort((a,b)=> b.createdAt.localeCompare(a.createdAt));
+  const root = document.getElementById('hist-list');
+  if(list.length===0){ root.innerHTML='<div class="empty-state">Nenhuma vistoria salva ainda.<br>Preencha uma nova vistoria para começar.</div>'; return; }
+  root.innerHTML = list.map(item=>`
+    <div class="hist-card" data-open="${item.id}">
+      <div class="hist-top">
+        <div>
+          <div class="hist-plate">${(item.plate||'—').toUpperCase()}</div>
+          <div class="hist-meta">${item.model||'Modelo não informado'} · ${item.date||''}${item.cliente&&item.cliente.nome? ' · '+item.cliente.nome:''}</div>
+        </div>
+        <div class="hist-badge ${item.approvedAt? (item.problemCount>0?'has-problem':'') : 'pending'}">
+          ${item.approvedAt ? (item.problemCount>0? item.problemCount+' problema(s)':'Sem problemas') : 'Aguardando assinatura'}
+        </div>
+      </div>
+    </div>`).join('');
+  root.querySelectorAll('[data-open]').forEach(card=> card.addEventListener('click', ()=> openDetail(card.dataset.open)));
+}
+
+function itemRowHtml(cat, it, d){
+  const cls = classifyForCat(cat, d.status);
+  const bg = cls==='sel-ok' ? 'var(--ok-bg)' : cls==='sel-neutral' ? 'var(--neutral-bad-bg)' : 'var(--problem-bg)';
+  const fg = cls==='sel-ok' ? 'var(--ok)' : cls==='sel-neutral' ? 'var(--neutral-bad)' : 'var(--problem)';
+  return `<div class="detail-item">
+      <div class="item-name">${it.name}</div>
+      <span class="st" style="background:${bg};color:${fg};">${d.status}</span>
+      ${d.note?`<div style="margin-top:6px;font-size:12.5px;color:var(--muted);">${d.note}</div>`:''}
+      ${d.photos&&d.photos.length?`<div class="thumb-row">${d.photos.map(p=>`<div class="thumb"><img src="${p}"></div>`).join('')}</div>`:''}
+    </div>`;
+}
+
+async function openDetail(id){
+  const rec = await dbGet(id);
+  if(!rec){ showToast('Vistoria não encontrada.'); return; }
+  currentDetailId = id;
+  document.getElementById('d-plate').textContent = (rec.plate||'—').toUpperCase();
+  document.getElementById('d-meta').textContent = `${rec.model||''} · ${rec.color||''} · ${rec.km?rec.km+' km':''} · ${rec.date||''} · Mecânico: ${rec.mechanic||'-'}`;
+
+  const body = document.getElementById('detail-body');
+  body.innerHTML = '';
+  GROUPS.forEach(grp=>{
+    const gt=document.createElement('div'); gt.className='group-title'; gt.textContent=grp.title; body.appendChild(gt);
+    CATEGORIES.filter(c=>c.group===grp.key).forEach(cat=>{
+      const st=document.createElement('div'); st.className='section-title'; st.innerHTML=`<span>${cat.title}</span>`; body.appendChild(st);
+      cat.items.forEach(it=>{
+        const d = rec.items[cat.key][it.name];
+        const div=document.createElement('div'); div.innerHTML = itemRowHtml(cat,it,d); body.appendChild(div.firstElementChild);
+      });
+    });
+  });
+
+  const clienteCard = document.createElement('div');
+  clienteCard.className='card';
+  clienteCard.innerHTML = `<h2>Cliente</h2>
+    <div style="font-size:13px;line-height:1.6;">
+      ${rec.cliente.nome||'<em>Nome não informado</em>'}<br>
+      ${rec.cliente.cpf?('CPF: '+rec.cliente.cpf+'<br>'):''}
+      Tel/WhatsApp: ${rec.cliente.tel||'-'}<br>
+      E-mail: ${rec.cliente.email||'-'}<br>
+      ${rec.cliente.endereco?(rec.cliente.endereco+(rec.cliente.numero?', '+rec.cliente.numero:'')+'<br>'):''}
+      ${rec.cliente.cidade?(rec.cliente.cidade+' · CEP '+(rec.cliente.cep||'-')):''}
+    </div>`;
+  body.insertBefore(clienteCard, body.firstChild);
+
+  const approvalDiv = document.getElementById('detail-approval');
+  const actionsDiv = document.getElementById('detail-actions');
+  approvalDiv.innerHTML=''; actionsDiv.innerHTML='';
+
+  if(!rec.approvedAt){
+    approvalDiv.innerHTML = `
+      <div class="sign-wrap">
+        <h2 style="font-family:'Oswald',sans-serif;font-size:15px;margin:0 0 10px;">Assinatura do cliente (aprovação do serviço)</h2>
+        <canvas id="sigCanvas"></canvas>
+        <div class="sign-actions">
+          <button class="btn-ghost" onclick="clearSignature()" style="flex:1;">Limpar</button>
+          <button class="btn-primary" onclick="approveInspection()" style="flex:1;">Aprovar e gerar PDF</button>
+        </div>
+      </div>`;
+    setTimeout(()=> setupSignaturePad(), 30);
+    actionsDiv.innerHTML = `<div style="display:flex;gap:10px;margin:0 14px 20px;"><button class="btn-danger" style="flex:1;" onclick="deleteCurrentDetail()">Excluir vistoria</button></div>`;
+  } else {
+    approvalDiv.innerHTML = `<div class="approved-box">✓ Aprovado por ${rec.cliente.nome||'cliente'} em ${new Date(rec.approvedAt).toLocaleString('pt-BR')}</div>
+      <div class="sign-wrap"><img src="${rec.signature}" style="width:100%;max-height:140px;object-fit:contain;"></div>`;
+    actionsDiv.innerHTML = `
+      <div class="share-row"><button class="btn-whats" onclick="shareViaSystem('${id}')">Compartilhar PDF</button></div>
+      <div class="share-row">
+        <button class="btn-ghost" style="flex:1;" onclick="downloadPdf('${id}')">Baixar PDF</button>
+        <button class="btn-ghost" style="flex:1;" onclick="window.print()">Imprimir</button>
+      </div>
+      <div class="share-row"><button class="btn-danger" style="flex:1;" onclick="deleteCurrentDetail()">Excluir vistoria</button></div>`;
+  }
+  document.getElementById('detail').classList.add('open');
+}
+function closeDetail(){ document.getElementById('detail').classList.remove('open'); currentDetailId=null; }
+
+async function deleteCurrentDetail(){
+  if(!currentDetailId) return;
+  if(!confirm('Excluir esta vistoria permanentemente?')) return;
+  await dbDelete(currentDetailId);
+  showToast('Vistoria excluída.');
+  closeDetail(); renderHistory();
+}
+
+/* ============ ASSINATURA ============ */
+function setupSignaturePad(){
+  const canvas = document.getElementById('sigCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const ratio = window.devicePixelRatio||1;
+  canvas.width = canvas.clientWidth*ratio; canvas.height = canvas.clientHeight*ratio;
+  ctx.scale(ratio,ratio); ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.strokeStyle='#1C1B1A';
+  let drawing=false, last=null;
+  function pos(e){ const r=canvas.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {x:t.clientX-r.left, y:t.clientY-r.top}; }
+  function start(e){ drawing=true; last=pos(e); e.preventDefault(); }
+  function move(e){ if(!drawing) return; const p=pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last=p; e.preventDefault(); }
+  function end(){ drawing=false; }
+  canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+  canvas.addEventListener('touchstart',start,{passive:false}); canvas.addEventListener('touchmove',move,{passive:false}); canvas.addEventListener('touchend',end);
+}
+function clearSignature(){ const c=document.getElementById('sigCanvas'); c.getContext('2d').clearRect(0,0,c.width,c.height); }
+
+async function approveInspection(){
+  const canvas = document.getElementById('sigCanvas');
+  const blank = document.createElement('canvas'); blank.width=canvas.width; blank.height=canvas.height;
+  if(canvas.toDataURL() === blank.toDataURL()){
+    if(!confirm('Nenhuma assinatura foi feita. Aprovar mesmo assim sem assinatura?')) return;
+  }
+  const rec = await dbGet(currentDetailId);
+  rec.signature = canvas.toDataURL('image/png');
+  rec.approvedAt = new Date().toISOString();
+  await dbPut(rec);
+  showToast('Vistoria aprovada! Gerando PDF...');
+  await openDetail(currentDetailId);
+  sendApprovalEmail(rec);
+}
+
+/* ============ ENVIO AUTOMÁTICO (Google Apps Script) ============ */
+async function sendApprovalEmail(rec){
+  const cfg = getSettings();
+  if(!cfg.webappUrl){ showToast('PDF gerado. Configure a URL do Apps Script em ⚙ para enviar por e-mail automaticamente.'); return; }
+  try{
+    const doc = await buildPdf(rec);
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+    const payload = {
+      pdfBase64,
+      fileName: `vistoria-${(rec.plate||'veiculo').toUpperCase()}.pdf`,
+      clientEmail: rec.cliente.email,
+      clientName: rec.cliente.nome,
+      mechanicEmail: cfg.mechanicEmail,
+      mechanicName: rec.mechanic,
+      plate: rec.plate,
+      approvedAt: rec.approvedAt
+    };
+    await fetch(cfg.webappUrl, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
+    showToast('PDF enviado para processamento de e-mail. Confira a caixa de entrada do cliente em alguns instantes.');
+  }catch(e){
+    console.error(e);
+    showToast('Não foi possível enviar o e-mail automaticamente. Use o botão Compartilhar como alternativa.');
+  }
+}
+
+/* ============ GERAÇÃO DE PDF (visual aprimorado) ============ */
+const PDF_COLORS = {
+  ink:[28,27,26], paper:[239,234,224], accent:[242,183,5], accentInk:[58,44,0],
+  ok:[47,158,68], okBg:[223,243,227], problem:[198,64,46], problemBg:[251,227,223],
+  neutral:[138,109,30], neutralBg:[243,231,201], muted:[114,107,94], line:[201,194,176], dark:[21,23,26]
+};
+
+function pdfRowColor(cls){
+  if(cls==='sel-ok') return {bg:PDF_COLORS.okBg, fg:PDF_COLORS.ok};
+  if(cls==='sel-neutral') return {bg:PDF_COLORS.neutralBg, fg:PDF_COLORS.neutral};
+  return {bg:PDF_COLORS.problemBg, fg:PDF_COLORS.problem};
+}
+
+async function buildPdf(rec){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm', format:'a4'});
+  const pageW=210, pageH=297, marginX=14;
+  let y=0;
+
+  function drawTopBand(){
+    doc.setFillColor(...PDF_COLORS.dark);
+    doc.rect(0,0,pageW,26,'F');
+    doc.setFillColor(...PDF_COLORS.accent);
+    doc.rect(0,26,pageW,1.6,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(...PDF_COLORS.paper);
+    doc.text('VISTORIA', marginX, 15);
+    doc.setTextColor(...PDF_COLORS.accent);
+    doc.text('VEICULAR', marginX + doc.getTextWidth('VISTORIA ')+2, 15);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(200,196,184);
+    doc.text('Relatório oficial de inspeção', marginX, 21);
+    // plate badge
+    const plateTxt = (rec.plate||'SEM PLACA').toUpperCase();
+    doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    const tw = doc.getTextWidth(plateTxt);
+    const bx = pageW-marginX-tw-10, by=7;
+    doc.setDrawColor(...PDF_COLORS.accent); doc.setLineWidth(0.8);
+    doc.setFillColor(...PDF_COLORS.paper);
+    doc.roundedRect(bx, by, tw+10, 11, 1.5, 1.5, 'FD');
+    doc.setTextColor(...PDF_COLORS.ink);
+    doc.text(plateTxt, bx+5, by+7.5);
+    y = 34;
+  }
+
+  function drawFooter(pageNum, totalPages){
+    doc.setDrawColor(...PDF_COLORS.line); doc.setLineWidth(0.2);
+    doc.line(marginX, pageH-14, pageW-marginX, pageH-14);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...PDF_COLORS.muted);
+    doc.text('Vistoria Veicular · Documento gerado eletronicamente', marginX, pageH-9);
+    doc.text(`Página ${pageNum} de ${totalPages}`, pageW-marginX, pageH-9, {align:'right'});
+  }
+
+  function checkPage(extra){
+    if(y+extra > pageH-18){ doc.addPage(); drawTopBand(); }
+  }
+
+  function sectionBar(text, count){
+    checkPage(11);
+    doc.setFillColor(...PDF_COLORS.ink);
+    doc.roundedRect(marginX, y, pageW-marginX*2, 8, 1.2, 1.2, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(...PDF_COLORS.paper);
+    doc.text(text, marginX+3, y+5.6);
+    if(count!==undefined){
+      doc.setFontSize(8.5); doc.setTextColor(...PDF_COLORS.accent);
+      doc.text(count+' problema(s)', pageW-marginX-3, y+5.6, {align:'right'});
+    }
+    y += 12;
+  }
+
+  function groupHeading(text){
+    checkPage(14);
+    doc.setFont('helvetica','bold'); doc.setFontSize(14.5); doc.setTextColor(...PDF_COLORS.ink);
+    doc.text(text, marginX, y+4);
+    doc.setDrawColor(...PDF_COLORS.accent); doc.setLineWidth(1.1);
+    doc.line(marginX, y+7, pageW-marginX, y+7);
+    y += 13;
+  }
+
+  drawTopBand();
+
+  // Painel de informações (veículo + cliente)
+  const panelY = y;
+  const colW = (pageW - marginX*2 - 6)/2;
+  doc.setFillColor(250,248,244); doc.setDrawColor(...PDF_COLORS.line); doc.setLineWidth(0.3);
+  doc.roundedRect(marginX, panelY, colW, 40, 2, 2, 'FD');
+  doc.roundedRect(marginX+colW+6, panelY, colW, 40, 2, 2, 'FD');
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...PDF_COLORS.ink);
+  doc.text('VEÍCULO', marginX+4, panelY+6);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.7); doc.setTextColor(60,56,50);
+  const vLines = [
+    `Modelo: ${rec.model||'-'}`, `Cor: ${rec.color||'-'}`, `KM: ${rec.km||'-'}`,
+    `Data: ${rec.date||'-'}`, `Mecânico: ${rec.mechanic||'-'}`
+  ];
+  vLines.forEach((l,i)=> doc.text(l, marginX+4, panelY+11+i*5.2));
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...PDF_COLORS.ink);
+  doc.text('CLIENTE', marginX+colW+10, panelY+6);
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.7); doc.setTextColor(60,56,50);
+  const cLines = [
+    `${rec.cliente.nome||'-'}`,
+    `${rec.cliente.cpf?('CPF: '+rec.cliente.cpf):''}`,
+    `Tel: ${rec.cliente.tel||'-'}`,
+    `E-mail: ${rec.cliente.email||'-'}`,
+    `${rec.cliente.endereco||''}${rec.cliente.numero?', '+rec.cliente.numero:''}`
+  ];
+  cLines.forEach((l,i)=> doc.text(l, marginX+colW+10, panelY+11+i*5.2, {maxWidth:colW-8}));
+  y = panelY+46;
+
+  // Resumo
+  let totalItens=0, totalProblemas=0;
+  CATEGORIES.forEach(cat=>{ cat.items.forEach(it=>{ totalItens++; if(!cat.informational && classifyForCat(cat, rec.items[cat.key][it.name].status)==='sel-problem') totalProblemas++; }); });
+  checkPage(16);
+  const sumColor = totalProblemas>0 ? PDF_COLORS.problemBg : PDF_COLORS.okBg;
+  const sumFg = totalProblemas>0 ? PDF_COLORS.problem : PDF_COLORS.ok;
+  doc.setFillColor(...sumColor); doc.roundedRect(marginX, y, pageW-marginX*2, 12, 2, 2, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(...sumFg);
+  doc.text(`${totalItens} itens vistoriados  ·  ${totalProblemas} problema(s) encontrado(s)`, marginX+4, y+7.8);
+  y += 18;
+
+  GROUPS.forEach(grp=>{
+    groupHeading(grp.title);
+    CATEGORIES.filter(c=>c.group===grp.key).forEach(cat=>{
+      let catProblems = 0;
+      if(!cat.informational) cat.items.forEach(it=>{ if(classifyForCat(cat, rec.items[cat.key][it.name].status)==='sel-problem') catProblems++; });
+      sectionBar(cat.title, cat.informational?undefined:catProblems);
+
+      cat.items.forEach(it=>{
+        const d = rec.items[cat.key][it.name];
+        const cls = classifyForCat(cat, d.status);
+        const {bg,fg} = pdfRowColor(cls);
+        checkPage(9);
+        doc.setFillColor(...bg);
+        doc.roundedRect(marginX, y, pageW-marginX*2, 7, 1, 1, 'F');
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...PDF_COLORS.ink);
+        doc.text(it.name, marginX+3, y+4.8, {maxWidth: pageW-marginX*2-45});
+        doc.setFont('helvetica','bold'); doc.setTextColor(...fg);
+        doc.text(d.status, pageW-marginX-3, y+4.8, {align:'right'});
+        y += 8.2;
+        if(d.note){
+          checkPage(5);
+          doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...PDF_COLORS.muted);
+          doc.text(`Obs: ${d.note}`, marginX+4, y, {maxWidth:pageW-marginX*2-8}); y += 5;
+        }
+        if(d.photos && d.photos.length){
+          checkPage(26);
+          let x = marginX+4;
+          d.photos.slice(0,4).forEach(p=>{ try{ doc.addImage(p,'JPEG',x,y,22,22); }catch(e){} x+=24; });
+          y += 25;
+        }
+      });
+      y += 3;
+    });
+  });
+
+  // Aprovação
+  checkPage(55);
+  doc.setFillColor(...PDF_COLORS.ink);
+  doc.roundedRect(marginX, y, pageW-marginX*2, 8, 1.2,1.2,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(...PDF_COLORS.paper);
+  doc.text('APROVAÇÃO DO CLIENTE', marginX+3, y+5.6);
+  y += 13;
+
+  if(rec.approvedAt){
+    doc.setFillColor(...PDF_COLORS.okBg); doc.setDrawColor(...PDF_COLORS.ok); doc.setLineWidth(0.5);
+    doc.roundedRect(marginX, y, pageW-marginX*2, 42, 2,2,'FD');
+    // selo
+    doc.setFillColor(...PDF_COLORS.ok);
+    doc.circle(marginX+12, y+13, 7, 'F');
+    doc.setDrawColor(255,255,255); doc.setLineWidth(1.2);
+    doc.line(marginX+8.5, y+13, marginX+11, y+16);
+    doc.line(marginX+11, y+16, marginX+16, y+9);
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...PDF_COLORS.ok);
+    doc.text('APROVADO', marginX+24, y+11);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.7); doc.setTextColor(50,50,50);
+    doc.text(`${rec.cliente.nome||'Cliente'} · ${new Date(rec.approvedAt).toLocaleString('pt-BR')}`, marginX+24, y+17);
+    try{ doc.addImage(rec.signature,'PNG', marginX+4, y+21, 70, 18); }catch(e){}
+    doc.setFontSize(7.5); doc.setTextColor(...PDF_COLORS.muted);
+    doc.text('Assinatura do cliente', marginX+4, y+41);
+    y += 48;
+  } else {
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(...PDF_COLORS.muted);
+    doc.text('Vistoria ainda não assinada pelo cliente.', marginX, y+6);
+    y += 12;
+  }
+
+  const totalPages = doc.internal.getNumberOfPages();
+  for(let p=1; p<=totalPages; p++){ doc.setPage(p); drawFooter(p, totalPages); }
+
+  return doc;
+}
+
+async function downloadPdf(id){
+  const rec = await dbGet(id);
+  const doc = await buildPdf(rec);
+  doc.save(`vistoria-${(rec.plate||'veiculo').toUpperCase()}.pdf`);
+}
+
+async function shareViaSystem(id){
+  const rec = await dbGet(id);
+  const doc = await buildPdf(rec);
+  const blob = doc.output('blob');
+  const file = new File([blob], `vistoria-${(rec.plate||'veiculo').toUpperCase()}.pdf`, {type:'application/pdf'});
+  const shareText = `Relatório de vistoria - ${(rec.plate||'').toUpperCase()} - ${rec.model||''}`;
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:'Vistoria Veicular', text:shareText}); return; }
+    catch(e){ /* cancelado */ }
+  }
+  doc.save(`vistoria-${(rec.plate||'veiculo').toUpperCase()}.pdf`);
+  showToast('PDF baixado. Envie manualmente pelo WhatsApp ou e-mail.');
+}
+
+function switchTab(tab){
+  document.querySelectorAll('nav.tabs button').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
+  document.getElementById('view-novo').classList.toggle('active', tab==='novo');
+  document.getElementById('view-historico').classList.toggle('active', tab==='historico');
+  document.getElementById('bar-novo').style.display = tab==='novo' ? 'flex':'none';
+  if(tab==='historico') renderHistory();
+}
+document.querySelectorAll('nav.tabs button').forEach(btn=> btn.addEventListener('click', ()=> switchTab(btn.dataset.tab)));
+
+/* ============ INIT ============ */
+state = blankState();
+document.getElementById('f-date').value = state.date;
+renderChecklist();
+renderHistory();
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
