@@ -7,27 +7,32 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#15171A">
+<meta name="theme-color" content="#0E1220">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
-    --bg:#15171A; --paper:#EFEAE0; --paper-2:#E4DDCC; --ink:#1C1B1A; --muted:#726B5E; --line:#C9C2B0;
-    --accent:#F2B705; --accent-ink:#3A2C00; --ok:#2F9E44; --ok-bg:#DFF3E3; --problem:#C6402E; --problem-bg:#FBE3DF;
+    --bg:#0E1220; --paper:#EFEAE0; --paper-2:#E4DDCC; --ink:#1C1B1A; --muted:#726B5E; --line:#C9C2B0;
+    --accent:#FAB205; --accent-ink:#2E2000; --blue:#1B3E8C; --blue-dark:#0B1C42;
+    --ok:#2F9E44; --ok-bg:#DFF3E3; --problem:#C6402E; --problem-bg:#FBE3DF;
     --neutral-bad:#8A6D1E; --neutral-bad-bg:#F3E7C9; --whats:#25D366; --mail:#4285F4;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;}
   body{background:var(--bg);color:var(--ink);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;display:flex;justify-content:center;min-height:100vh;}
   #app{width:100%;max-width:520px;background:var(--paper);min-height:100vh;display:flex;flex-direction:column;position:relative;}
-  header.top{background:var(--bg);color:var(--paper);padding:18px 18px 14px;position:sticky;top:0;z-index:20;}
-  .wordmark{font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;letter-spacing:0.5px;margin:0;display:flex;align-items:baseline;gap:8px;justify-content:space-between;}
+  header.top{background:linear-gradient(160deg,var(--bg) 55%,var(--blue-dark) 100%);color:var(--paper);padding:14px 18px 14px;position:sticky;top:0;z-index:20;border-bottom:2px solid var(--accent);}
+  .brand-row{display:flex;align-items:center;gap:10px;}
+  .brand-logo{height:38px;width:auto;border-radius:4px;flex:none;}
+  .brand-text{flex:1;min-width:0;}
+  .brand-sub{display:block;font-family:'Oswald',sans-serif;font-size:10.5px;font-weight:600;letter-spacing:1.2px;color:var(--accent);margin-top:1px;}
+  .wordmark{font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;letter-spacing:0.4px;margin:0;line-height:1.15;}
   .wordmark span.dot{color:var(--accent);}
-  .gear-btn{background:none;border:1px solid #3a3d40;color:var(--paper);border-radius:6px;font-size:15px;padding:3px 9px;cursor:pointer;}
+  .gear-btn{background:none;border:1px solid #3a3d54;color:var(--paper);border-radius:6px;font-size:15px;padding:3px 9px;cursor:pointer;flex:none;}
   .plate-badge{margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:var(--paper);color:var(--ink);font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;padding:4px 10px;border-radius:4px;border:2px solid var(--accent);min-height:26px;}
-  nav.tabs{display:flex;background:var(--bg);position:sticky;top:78px;z-index:20;border-bottom:1px solid #000;}
-  nav.tabs button{flex:1;background:none;border:none;color:#8b8477;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.3px;padding:12px 8px;cursor:pointer;border-bottom:3px solid transparent;}
+  nav.tabs{display:flex;background:var(--bg);position:sticky;top:102px;z-index:20;border-bottom:1px solid #000;}
+  nav.tabs button{flex:1;background:none;border:none;color:#8b8fa8;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;letter-spacing:0.3px;padding:12px 8px;cursor:pointer;border-bottom:3px solid transparent;}
   nav.tabs button.active{color:var(--paper);border-bottom-color:var(--accent);}
   main{flex:1;padding-bottom:100px;}
   .view{display:none;}
@@ -43,7 +48,7 @@
   .field-row .field{flex:1;}
   .jumpnav{display:flex;gap:8px;padding:0 14px 4px;overflow-x:auto;}
   .jumpnav button{flex:none;background:var(--paper-2);border:1px solid var(--line);border-radius:16px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;}
-  .group-title{font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;margin:26px 14px 4px;padding-bottom:6px;border-bottom:2px solid var(--ink);}
+  .group-title{font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;margin:26px 14px 4px;padding-bottom:6px;border-bottom:2px solid var(--blue);color:var(--blue-dark);}
   .section-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;margin:18px 14px 2px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);}
   .section-badge{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;background:var(--paper-2);color:var(--muted);border-radius:10px;padding:2px 8px;}
   .section-badge.has-problem{background:var(--problem-bg);color:var(--problem);}
@@ -70,6 +75,7 @@
   .problem-count b{color:var(--accent);font-size:16px;}
   .btn-primary{background:var(--accent);color:var(--accent-ink);border:none;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:0.3px;padding:12px 18px;border-radius:5px;cursor:pointer;}
   .btn-ghost{background:none;border:1px solid var(--line);color:var(--ink);font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;padding:9px 14px;border-radius:5px;cursor:pointer;}
+  .bottombar-inner .btn-ghost, #detail .dhead .btn-ghost{color:var(--paper);border-color:#4a4d52;background:rgba(255,255,255,0.06);}
   .btn-danger{background:none;border:1px solid var(--problem);color:var(--problem);font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;padding:8px 12px;border-radius:5px;cursor:pointer;}
   .btn-whats{background:var(--whats);color:#fff;border:none;font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;padding:11px 12px;border-radius:5px;cursor:pointer;flex:1;}
   .hist-card{background:#fff;margin:12px 14px;border:1px solid var(--line);border-radius:6px;padding:12px 14px;cursor:pointer;}
@@ -104,10 +110,16 @@
 <body>
 <div id="app">
   <header class="top">
-    <p class="wordmark">
-      <span>VISTORIA<span class="dot">.</span>VEICULAR</span>
+    <div class="brand-row">
+      <img src="logo-header.png" alt="Said Auto Centro" class="brand-logo">
+      <div class="brand-text">
+        <p class="wordmark">
+          <span>VISTORIA<span class="dot">.</span>VEICULAR</span>
+        </p>
+        <span class="brand-sub">SAID AUTO CENTRO</span>
+      </div>
       <button class="gear-btn" onclick="openSettings()">&#9881;</button>
-    </p>
+    </div>
     <div class="plate-badge" id="plateBadge">SEM PLACA</div>
   </header>
   <nav class="tabs">
@@ -123,10 +135,10 @@
           <div class="field"><label>KM</label><input id="f-km" inputmode="numeric" placeholder="0"></div>
         </div>
         <div class="field-row">
-          <div class="field"><label>Marca (FIPE)</label><select id="f-marca"><option value="">Carregando...</option></select></div>
-          <div class="field"><label>Modelo (FIPE)</label><select id="f-modelo"><option value="">Selecione a marca</option></select></div>
+          <div class="field"><label>Marca (buscar)</label><input id="f-marca" list="dl-marca" placeholder="Digite para buscar..." autocomplete="off"><datalist id="dl-marca"></datalist></div>
+          <div class="field"><label>Modelo (buscar)</label><input id="f-modelo" list="dl-modelo" placeholder="Selecione a marca primeiro" autocomplete="off" disabled><datalist id="dl-modelo"></datalist></div>
         </div>
-        <div class="field"><label>Ano (FIPE)</label><select id="f-ano"><option value="">Selecione o modelo</option></select></div>
+        <div class="field"><label>Ano</label><select id="f-ano"><option value="">Selecione o modelo</option></select></div>
         <div class="field"><label>Modelo / Marca (texto final)</label><input id="f-model" placeholder="Preenchido pela FIPE ou digite manualmente"></div>
         <div class="field-row">
           <div class="field"><label>Cor</label><input id="f-color" placeholder="Ex: Prata"></div>
@@ -260,6 +272,15 @@ const CATEGORIES = [
     items:[{name:'Cinto dianteiro esquerdo'},{name:'Cinto dianteiro direito'},{name:'Cinto traseiro'}] },
   { key:'combustivel', group:'interno', title:'Combustível', statusOptions:['Cheio','3/4','1/2','1/4','Reserva'], informational:true,
     items:[{name:'Nível de combustível na entrada'}] },
+  { key:'luzes-painel', group:'interno', title:'Luzes de advertência do painel', statusOptions:['Apagada','Acesa'],
+    items:[{name:'Óleo'},{name:'Bateria'},{name:'Temperatura do motor'},{name:'Freio / ABS'},{name:'Injeção eletrônica (check engine)'},{name:'Airbag'},{name:'Combustível (reserva)'},{name:'Freio de estacionamento'},{name:'Correia dentada'},{name:'Outra luz acesa (ver observação)'}] },
+  { key:'obs-gerais', group:'interno', title:'Observações gerais', informational:true, freeText:true,
+    items:[
+      {name:'Marca da bateria', placeholder:'Ex: Moura, Heliar, Zetta...'},
+      {name:'Vazamentos identificados', placeholder:'Ex: óleo no motor, arrefecimento, direção...'},
+      {name:'Estado das palhetas do limpador', placeholder:'Ex: ressecadas, riscando o vidro, novas...'},
+      {name:'Outras observações', placeholder:'Qualquer outro ponto relevante sobre o veículo'}
+    ]},
 
   { key:'obrigatorios', group:'acessorios', title:'Itens obrigatórios', statusOptions:['Presente','Ausente'],
     items:[{name:'Documento do veículo (CRLV)'},{name:'Triângulo'},{name:'Macaco'},{name:'Chave de roda'},
@@ -268,7 +289,7 @@ const CATEGORIES = [
 
 function getOptions(cat, item){ return item.options || cat.statusOptions; }
 function classify(status){
-  if(status.startsWith('OK') || status.startsWith('Presente') || status==='Funciona') return 'sel-ok';
+  if(status.startsWith('OK') || status.startsWith('Presente') || status==='Funciona' || status==='Apagada') return 'sel-ok';
   if(['Desgastado','Sujo','Não possui','Murcho'].includes(status)) return 'sel-neutral';
   return 'sel-problem';
 }
@@ -284,7 +305,7 @@ function blankState(){
   const items = {};
   CATEGORIES.forEach(cat=>{
     items[cat.key] = {};
-    cat.items.forEach(it=>{ items[cat.key][it.name] = { status:getOptions(cat,it)[0], note:'', photos:[] }; });
+    cat.items.forEach(it=>{ items[cat.key][it.name] = { status: cat.freeText ? 'Informado' : getOptions(cat,it)[0], note:'', photos:[] }; });
   });
   return {
     plate:'', km:'', model:'', color:'', mechanic:'', date:new Date().toISOString().slice(0,10),
@@ -311,9 +332,23 @@ function renderChecklist(){
       root.appendChild(secTitle);
 
       cat.items.forEach(it=>{
-        const name=it.name; const opts=getOptions(cat,it);
+        const name=it.name;
         const rowId='row-'+slug(cat.key+'-'+name);
         const row=document.createElement('div'); row.className='item-row'; row.id=rowId;
+        if(cat.freeText){
+          row.innerHTML = `
+            <div class="item-name">${name}</div>
+            <div class="note-box open"><textarea placeholder="${it.placeholder||'Observação...'}" data-note-input="${encodeURIComponent(name)}" data-cat="${cat.key}"></textarea></div>
+            <div class="item-extra">
+              <button type="button" class="icon-btn" data-photo-cam="${encodeURIComponent(name)}" data-cat="${cat.key}">Câmera</button>
+              <button type="button" class="icon-btn" data-photo-gal="${encodeURIComponent(name)}" data-cat="${cat.key}">Galeria</button>
+            </div>
+            <div class="thumb-row" id="thumbs-${rowId}"></div>
+          `;
+          root.appendChild(row);
+          return;
+        }
+        const opts=getOptions(cat,it);
         const chipsHtml = opts.map(opt=>`<button type="button" class="chip" data-cat="${cat.key}" data-item="${encodeURIComponent(name)}" data-status="${opt}">${opt}</button>`).join('');
         row.innerHTML = `
           <div class="item-name">${name}</div>
@@ -463,36 +498,41 @@ document.getElementById('c-cep').addEventListener('blur', async ()=>{
   }catch(e){ /* sem internet: cliente preenche manualmente */ }
 });
 
-/* ============ CATÁLOGO FIPE (marca/modelo/ano) ============ */
+/* ============ CATÁLOGO FIPE (marca/modelo/ano) — com busca ============ */
 const FIPE_BASE = 'https://parallelum.com.br/fipe/api/v1/carros';
+let marcaMap = {}, modeloMap = {};
 async function loadMarcas(){
-  const sel = document.getElementById('f-marca');
+  const inp = document.getElementById('f-marca');
+  const dl = document.getElementById('dl-marca');
   try{
     const r = await fetch(`${FIPE_BASE}/marcas`);
     const list = await r.json();
-    sel.innerHTML = '<option value="">Selecione a marca</option>' + list.map(m=>`<option value="${m.codigo}">${m.nome}</option>`).join('');
-  }catch(e){
-    sel.innerHTML = '<option value="">Sem internet - digite manualmente abaixo</option>';
-  }
+    marcaMap = {}; list.forEach(m=> marcaMap[m.nome]=m.codigo);
+    dl.innerHTML = list.map(m=>`<option value="${m.nome}">`).join('');
+    inp.placeholder = 'Digite para buscar a marca...';
+  }catch(e){ inp.placeholder = 'Sem internet - digite manualmente abaixo'; }
 }
-document.getElementById('f-marca').addEventListener('change', async (e)=>{
-  const codigo = e.target.value;
-  const modeloSel = document.getElementById('f-modelo');
+document.getElementById('f-marca').addEventListener('input', async (e)=>{
+  const codigo = marcaMap[e.target.value];
+  const modeloInp = document.getElementById('f-modelo');
+  const dlModelo = document.getElementById('dl-modelo');
   const anoSel = document.getElementById('f-ano');
   anoSel.innerHTML = '<option value="">Selecione o modelo</option>';
-  if(!codigo){ modeloSel.innerHTML='<option value="">Selecione a marca</option>'; return; }
-  modeloSel.innerHTML = '<option value="">Carregando...</option>';
+  if(!codigo){ modeloInp.disabled = true; modeloInp.value=''; modeloInp.placeholder='Selecione a marca primeiro'; return; }
+  modeloInp.disabled = false; modeloInp.value=''; modeloInp.placeholder='Carregando modelos...'; dlModelo.innerHTML='';
   try{
     const r = await fetch(`${FIPE_BASE}/marcas/${codigo}/modelos`);
     const data = await r.json();
-    modeloSel.innerHTML = '<option value="">Selecione o modelo</option>' + data.modelos.map(m=>`<option value="${m.codigo}">${m.nome}</option>`).join('');
-  }catch(e){ modeloSel.innerHTML = '<option value="">Erro ao carregar</option>'; }
+    modeloMap = {}; data.modelos.forEach(m=> modeloMap[m.nome]=m.codigo);
+    dlModelo.innerHTML = data.modelos.map(m=>`<option value="${m.nome}">`).join('');
+    modeloInp.placeholder = 'Digite para buscar o modelo...';
+  }catch(e){ modeloInp.placeholder = 'Erro ao carregar - digite manualmente'; }
 });
-document.getElementById('f-modelo').addEventListener('change', async (e)=>{
-  const codigoModelo = e.target.value;
-  const codigoMarca = document.getElementById('f-marca').value;
+document.getElementById('f-modelo').addEventListener('input', async (e)=>{
+  const codigoModelo = modeloMap[e.target.value];
+  const codigoMarca = marcaMap[document.getElementById('f-marca').value];
   const anoSel = document.getElementById('f-ano');
-  if(!codigoModelo){ anoSel.innerHTML='<option value="">Selecione o modelo</option>'; return; }
+  if(!codigoModelo || !codigoMarca){ anoSel.innerHTML='<option value="">Selecione o modelo</option>'; return; }
   anoSel.innerHTML = '<option value="">Carregando...</option>';
   try{
     const r = await fetch(`${FIPE_BASE}/marcas/${codigoMarca}/modelos/${codigoModelo}/anos`);
@@ -502,8 +542,8 @@ document.getElementById('f-modelo').addEventListener('change', async (e)=>{
 });
 document.getElementById('f-ano').addEventListener('change', (e)=>{
   if(!e.target.value) return;
-  const marcaTxt = document.getElementById('f-marca').selectedOptions[0].textContent;
-  const modeloTxt = document.getElementById('f-modelo').selectedOptions[0].textContent;
+  const marcaTxt = document.getElementById('f-marca').value;
+  const modeloTxt = document.getElementById('f-modelo').value;
   const anoTxt = e.target.selectedOptions[0].textContent;
   const combined = `${marcaTxt} ${modeloTxt} (${anoTxt})`;
   document.getElementById('f-model').value = combined;
@@ -516,7 +556,7 @@ function resetForm(confirmFirst){
   if(confirmFirst && !confirm('Limpar todos os campos da vistoria atual?')) return;
   state = blankState();
   ['plate','km','model','color','mechanic'].forEach(k=> document.getElementById('f-'+k).value='');
-  document.getElementById('f-marca').value=''; document.getElementById('f-modelo').innerHTML='<option value="">Selecione a marca</option>'; document.getElementById('f-ano').innerHTML='<option value="">Selecione o modelo</option>';
+  document.getElementById('f-marca').value=''; document.getElementById('f-modelo').value=''; document.getElementById('f-modelo').disabled=true; document.getElementById('f-modelo').placeholder='Selecione a marca primeiro'; document.getElementById('f-ano').innerHTML='<option value="">Selecione o modelo</option>';
   Object.keys(clienteFieldMap).forEach(id=> document.getElementById(id).value='');
   document.getElementById('c-cpf').value=''; document.getElementById('c-tel').value='';
   document.getElementById('f-date').value = state.date;
@@ -582,6 +622,13 @@ async function renderHistory(){
 }
 
 function itemRowHtml(cat, it, d){
+  if(cat.freeText){
+    return `<div class="detail-item">
+        <div class="item-name">${it.name}</div>
+        <div style="margin-top:4px;font-size:12.5px;color:var(--ink);">${d.note ? d.note : '<em style="color:var(--muted);">Não informado</em>'}</div>
+        ${d.photos&&d.photos.length?`<div class="thumb-row">${d.photos.map(p=>`<div class="thumb"><img src="${p}"></div>`).join('')}</div>`:''}
+      </div>`;
+  }
   const cls = classifyForCat(cat, d.status);
   const bg = cls==='sel-ok' ? 'var(--ok-bg)' : cls==='sel-neutral' ? 'var(--neutral-bad-bg)' : 'var(--problem-bg)';
   const fg = cls==='sel-ok' ? 'var(--ok)' : cls==='sel-neutral' ? 'var(--neutral-bad)' : 'var(--problem)';
@@ -646,7 +693,10 @@ async function openDetail(id){
     approvalDiv.innerHTML = `<div class="approved-box">✓ Aprovado por ${rec.cliente.nome||'cliente'} em ${new Date(rec.approvedAt).toLocaleString('pt-BR')}</div>
       <div class="sign-wrap"><img src="${rec.signature}" style="width:100%;max-height:140px;object-fit:contain;"></div>`;
     actionsDiv.innerHTML = `
-      <div class="share-row"><button class="btn-whats" onclick="shareViaSystem('${id}')">Compartilhar PDF</button></div>
+      <div class="share-row">
+        <button class="btn-whats" onclick="shareViaSystem('${id}')">Compartilhar PDF</button>
+        <button class="btn-whats" style="background:#128C4A;" onclick="openWhatsappById('${id}')">Enviar WhatsApp</button>
+      </div>
       <div class="share-row">
         <button class="btn-ghost" style="flex:1;" onclick="downloadPdf('${id}')">Baixar PDF</button>
         <button class="btn-ghost" style="flex:1;" onclick="window.print()">Imprimir</button>
@@ -698,7 +748,7 @@ async function approveInspection(){
   sendApprovalEmail(rec);
 }
 
-/* ============ ENVIO AUTOMÁTICO (Google Apps Script) ============ */
+/* ============ ENVIO AUTOMÁTICO (Google Apps Script) + WhatsApp ============ */
 async function sendApprovalEmail(rec){
   const cfg = getSettings();
   if(!cfg.webappUrl){ showToast('PDF gerado. Configure a URL do Apps Script em ⚙ para enviar por e-mail automaticamente.'); return; }
@@ -706,28 +756,49 @@ async function sendApprovalEmail(rec){
     const doc = await buildPdf(rec);
     const pdfBase64 = doc.output('datauristring').split(',')[1];
     const payload = {
+      id: rec.id,
       pdfBase64,
       fileName: `vistoria-${(rec.plate||'veiculo').toUpperCase()}.pdf`,
       clientEmail: rec.cliente.email,
       clientName: rec.cliente.nome,
+      clientPhone: rec.cliente.tel,
+      clientAddress: `${rec.cliente.endereco||''}${rec.cliente.numero?', '+rec.cliente.numero:''}${rec.cliente.cidade?' - '+rec.cliente.cidade:''}`,
       mechanicEmail: cfg.mechanicEmail,
       mechanicName: rec.mechanic,
       plate: rec.plate,
+      model: rec.model,
+      color: rec.color,
+      km: rec.km,
+      date: rec.date,
       approvedAt: rec.approvedAt
     };
     await fetch(cfg.webappUrl, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
-    showToast('PDF enviado para processamento de e-mail. Confira a caixa de entrada do cliente em alguns instantes.');
+    showToast('E-mail enviado para o cliente e para a oficina.');
   }catch(e){
     console.error(e);
     showToast('Não foi possível enviar o e-mail automaticamente. Use o botão Compartilhar como alternativa.');
   }
 }
 
+function openWhatsappForClient(rec){
+  const digits = (rec.cliente.tel||'').replace(/\D/g,'');
+  if(!digits){ showToast('Cliente sem telefone cadastrado.'); return; }
+  const withCountry = digits.length<=11 ? '55'+digits : digits;
+  const msg = `Olá, ${rec.cliente.nome||''}! Aqui é da ${SHOP_NAME_JS}. Sua vistoria do veículo ${ (rec.plate||'').toUpperCase() } foi aprovada e o PDF assinado já foi enviado para o seu e-mail (${rec.cliente.email||'-'}). Qualquer dúvida estamos à disposição: ${SHOP_PHONES_JS}.`;
+  const url = `https://wa.me/${withCountry}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+async function openWhatsappById(id){ const rec = await dbGet(id); if(rec) openWhatsappForClient(rec); }
+const SHOP_NAME_JS = 'Said Auto Centro';
+const SHOP_PHONES_JS = '(61) 3484-7449 / (61) 98239-2143';
+
 /* ============ GERAÇÃO DE PDF (visual aprimorado) ============ */
+const SHOP_LOGO_B64 = 'data:image/jpeg;base64,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';
 const PDF_COLORS = {
-  ink:[28,27,26], paper:[239,234,224], accent:[242,183,5], accentInk:[58,44,0],
+  ink:[28,27,26], paper:[239,234,224], accent:[250,178,5], accentInk:[46,32,0],
   ok:[47,158,68], okBg:[223,243,227], problem:[198,64,46], problemBg:[251,227,223],
-  neutral:[138,109,30], neutralBg:[243,231,201], muted:[114,107,94], line:[201,194,176], dark:[21,23,26]
+  neutral:[138,109,30], neutralBg:[243,231,201], muted:[114,107,94], line:[201,194,176],
+  dark:[14,18,32], blue:[27,62,140], blueDark:[11,28,66], paper2:[228,221,204]
 };
 
 function pdfRowColor(cls){
@@ -744,15 +815,21 @@ async function buildPdf(rec){
 
   function drawTopBand(){
     doc.setFillColor(...PDF_COLORS.dark);
-    doc.rect(0,0,pageW,26,'F');
+    doc.rect(0,0,pageW,30,'F');
+    doc.setFillColor(...PDF_COLORS.blue);
+    doc.rect(0,30,pageW,1.4,'F');
     doc.setFillColor(...PDF_COLORS.accent);
-    doc.rect(0,26,pageW,1.6,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(...PDF_COLORS.paper);
-    doc.text('VISTORIA', marginX, 15);
+    doc.rect(0,31.4,pageW,1.4,'F');
+    try{ doc.addImage(SHOP_LOGO_B64,'JPEG', marginX, 4.5, 21, 21); }catch(e){}
+    const textX = marginX + 25;
+    doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(...PDF_COLORS.paper);
+    doc.text('VISTORIA', textX, 13);
     doc.setTextColor(...PDF_COLORS.accent);
-    doc.text('VEICULAR', marginX + doc.getTextWidth('VISTORIA ')+2, 15);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(200,196,184);
-    doc.text('Relatório oficial de inspeção', marginX, 21);
+    doc.text('VEICULAR', textX + doc.getTextWidth('VISTORIA ')+2, 13);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...PDF_COLORS.accent);
+    doc.text('SAID AUTO CENTRO', textX, 20);
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.6); doc.setTextColor(180,188,210);
+    doc.text('(61) 3484-7449 · (61) 98239-2143', textX, 25.5);
     // plate badge
     const plateTxt = (rec.plate||'SEM PLACA').toUpperCase();
     doc.setFont('helvetica','bold'); doc.setFontSize(13);
@@ -763,7 +840,7 @@ async function buildPdf(rec){
     doc.roundedRect(bx, by, tw+10, 11, 1.5, 1.5, 'FD');
     doc.setTextColor(...PDF_COLORS.ink);
     doc.text(plateTxt, bx+5, by+7.5);
-    y = 34;
+    y = 38;
   }
 
   function drawFooter(pageNum, totalPages){
@@ -780,7 +857,7 @@ async function buildPdf(rec){
 
   function sectionBar(text, count){
     checkPage(11);
-    doc.setFillColor(...PDF_COLORS.ink);
+    doc.setFillColor(...PDF_COLORS.blue);
     doc.roundedRect(marginX, y, pageW-marginX*2, 8, 1.2, 1.2, 'F');
     doc.setFont('helvetica','bold'); doc.setFontSize(10.5); doc.setTextColor(...PDF_COLORS.paper);
     doc.text(text, marginX+3, y+5.6);
@@ -793,7 +870,7 @@ async function buildPdf(rec){
 
   function groupHeading(text){
     checkPage(14);
-    doc.setFont('helvetica','bold'); doc.setFontSize(14.5); doc.setTextColor(...PDF_COLORS.ink);
+    doc.setFont('helvetica','bold'); doc.setFontSize(14.5); doc.setTextColor(...PDF_COLORS.blueDark);
     doc.text(text, marginX, y+4);
     doc.setDrawColor(...PDF_COLORS.accent); doc.setLineWidth(1.1);
     doc.line(marginX, y+7, pageW-marginX, y+7);
@@ -802,34 +879,49 @@ async function buildPdf(rec){
 
   drawTopBand();
 
-  // Painel de informações (veículo + cliente)
+  // Painel de informações (veículo + cliente) — com quebra de linha segura
   const panelY = y;
   const colW = (pageW - marginX*2 - 6)/2;
+  const textW = colW - 8;
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(8.7);
+  const vRaw = [
+    [`Modelo: ${rec.model||'-'}`, true],
+    [`Cor: ${rec.color||'-'}    KM: ${rec.km||'-'}`, false],
+    [`Combustível: ${(rec.items.combustivel && rec.items.combustivel['Nível de combustível na entrada']) ? rec.items.combustivel['Nível de combustível na entrada'].status : '-'}`, false],
+    [`Data: ${rec.date||'-'}`, false],
+    [`Mecânico: ${rec.mechanic||'-'}`, false]
+  ];
+  const cRaw = [
+    [`${rec.cliente.nome||'-'}`, true],
+    [rec.cliente.cpf ? `CPF: ${rec.cliente.cpf}` : '', false],
+    [`Tel/WhatsApp: ${rec.cliente.tel||'-'}`, false],
+    [`E-mail: ${rec.cliente.email||'-'}`, true],
+    [`${rec.cliente.endereco||''}${rec.cliente.numero?', '+rec.cliente.numero:''}${rec.cliente.cidade?' - '+rec.cliente.cidade:''}`, true]
+  ];
+  function wrapAll(raw, width){
+    let lines = [];
+    raw.forEach(([txt])=>{ if(!txt) return; doc.splitTextToSize(txt, width).forEach(l=> lines.push(l)); });
+    return lines;
+  }
+  const vLines = wrapAll(vRaw, textW);
+  const cLines = wrapAll(cRaw, textW);
+  const panelH = Math.max(40, 15 + Math.max(vLines.length, cLines.length)*5.2);
+
   doc.setFillColor(250,248,244); doc.setDrawColor(...PDF_COLORS.line); doc.setLineWidth(0.3);
-  doc.roundedRect(marginX, panelY, colW, 40, 2, 2, 'FD');
-  doc.roundedRect(marginX+colW+6, panelY, colW, 40, 2, 2, 'FD');
+  doc.roundedRect(marginX, panelY, colW, panelH, 2, 2, 'FD');
+  doc.roundedRect(marginX+colW+6, panelY, colW, panelH, 2, 2, 'FD');
 
   doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...PDF_COLORS.ink);
   doc.text('VEÍCULO', marginX+4, panelY+6);
   doc.setFont('helvetica','normal'); doc.setFontSize(8.7); doc.setTextColor(60,56,50);
-  const vLines = [
-    `Modelo: ${rec.model||'-'}`, `Cor: ${rec.color||'-'}`, `KM: ${rec.km||'-'}`,
-    `Data: ${rec.date||'-'}`, `Mecânico: ${rec.mechanic||'-'}`
-  ];
-  vLines.forEach((l,i)=> doc.text(l, marginX+4, panelY+11+i*5.2));
+  vLines.forEach((l,i)=> doc.text(l, marginX+4, panelY+11+i*5.2, {maxWidth:textW}));
 
   doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(...PDF_COLORS.ink);
   doc.text('CLIENTE', marginX+colW+10, panelY+6);
   doc.setFont('helvetica','normal'); doc.setFontSize(8.7); doc.setTextColor(60,56,50);
-  const cLines = [
-    `${rec.cliente.nome||'-'}`,
-    `${rec.cliente.cpf?('CPF: '+rec.cliente.cpf):''}`,
-    `Tel: ${rec.cliente.tel||'-'}`,
-    `E-mail: ${rec.cliente.email||'-'}`,
-    `${rec.cliente.endereco||''}${rec.cliente.numero?', '+rec.cliente.numero:''}`
-  ];
-  cLines.forEach((l,i)=> doc.text(l, marginX+colW+10, panelY+11+i*5.2, {maxWidth:colW-8}));
-  y = panelY+46;
+  cLines.forEach((l,i)=> doc.text(l, marginX+colW+10, panelY+11+i*5.2, {maxWidth:textW}));
+  y = panelY+panelH+6;
 
   // Resumo
   let totalItens=0, totalProblemas=0;
@@ -851,6 +943,24 @@ async function buildPdf(rec){
 
       cat.items.forEach(it=>{
         const d = rec.items[cat.key][it.name];
+        if(cat.freeText){
+          if(!d.note && !(d.photos&&d.photos.length)) return;
+          checkPage(9);
+          doc.setFillColor(...PDF_COLORS.paper2 || [228,221,204]);
+          doc.setFont('helvetica','bold'); doc.setFontSize(8.7); doc.setTextColor(...PDF_COLORS.ink);
+          doc.text(it.name+':', marginX+3, y+4.2);
+          doc.setFont('helvetica','normal'); doc.setFontSize(8.7); doc.setTextColor(60,56,50);
+          const noteLines = doc.splitTextToSize(d.note||'-', pageW-marginX*2-8);
+          doc.text(noteLines, marginX+3, y+9);
+          y += 6 + noteLines.length*4.3;
+          if(d.photos && d.photos.length){
+            checkPage(26);
+            let x = marginX+4;
+            d.photos.slice(0,4).forEach(p=>{ try{ doc.addImage(p,'JPEG',x,y,22,22); }catch(e){} x+=24; });
+            y += 25;
+          }
+          return;
+        }
         const cls = classifyForCat(cat, d.status);
         const {bg,fg} = pdfRowColor(cls);
         checkPage(9);
