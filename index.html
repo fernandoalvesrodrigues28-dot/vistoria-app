@@ -101,7 +101,7 @@
   .approved-box{background:var(--ok-bg);border:1px solid var(--ok);color:var(--ok);border-radius:6px;padding:10px 12px;margin:14px;font-size:13px;font-weight:600;}
   .help-txt{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.4;}
   @media print{
-    header.top, nav.tabs, .bottombar, .jumpnav, #detail .dhead, .sign-wrap, .share-row{display:none !important;}
+    header.top, nav.tabs, .bottombar, .jumpnav, #detail .dhead, .sign-wrap, .share-row, main, #settings{display:none !important;}
     #detail{position:static;background:#fff;}
     body{background:#fff;}
   }
@@ -144,7 +144,7 @@
           <div class="field"><label>Cor</label><input id="f-color" placeholder="Ex: Prata"></div>
           <div class="field"><label>Responsável (mecânico)</label><input id="f-mechanic" placeholder="Seu nome"></div>
         </div>
-        <div class="field"><label>Data</label><input id="f-date" type="date"></div>
+        <div class="field"><label>Data e hora de chegada na oficina</label><input id="f-date" type="datetime-local"></div>
       </div>
 
       <div class="card">
@@ -152,6 +152,9 @@
         <div class="field"><label>Nome completo</label><input id="c-nome" placeholder="Nome do cliente"></div>
         <div class="field-row">
           <div class="field"><label>CPF (opcional)</label><input id="c-cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14"></div>
+          <div class="field"><label>Data de nascimento</label><input id="c-nascimento" type="date"></div>
+        </div>
+        <div class="field-row">
           <div class="field"><label class="req">Telefone / WhatsApp</label><input id="c-tel" inputmode="tel" placeholder="(00) 00000-0000" maxlength="15"></div>
         </div>
         <div class="field"><label class="req">E-mail</label><input id="c-email" type="email" placeholder="cliente@email.com"></div>
@@ -201,12 +204,61 @@
       <div class="field">
         <label>URL do Google Apps Script (Web App)</label>
         <input id="s-webapp" placeholder="https://script.google.com/macros/s/.../exec">
-        <div class="help-txt">Cole aqui a URL gerada ao publicar o script (veja o passo a passo que te enviei). Sem essa URL, o PDF não é enviado automaticamente.</div>
+        <div class="help-txt">Cole aqui a URL gerada ao publicar o script. Sem essa URL, o PDF não é enviado automaticamente.</div>
       </div>
       <div class="field">
         <label>E-mail do mecânico (recebe cópia da vistoria aprovada)</label>
         <input id="s-mechanic-email" type="email" placeholder="fernandoalvesrodrigues28@gmail.com">
       </div>
+    </div>
+    <div class="card">
+      <h2>WhatsApp</h2>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;">
+        <input type="checkbox" id="s-whatsapp-auto" style="width:18px;height:18px;">
+        Abrir o WhatsApp automaticamente para o cliente assim que a vistoria for aprovada
+      </label>
+      <div class="help-txt">O WhatsApp não permite que nenhum app envie mensagem sozinho — isso abre a conversa já pronta, você só confirma o envio dentro do WhatsApp.</div>
+    </div>
+    <div class="card">
+      <h2>Consulta de placa (opcional, serviço pago)</h2>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;">
+        <input type="checkbox" id="s-plate-api-on" style="width:18px;height:18px;">
+        Ativar preenchimento automático por placa
+      </label>
+      <div class="field" style="margin-top:8px;">
+        <label>URL da API</label>
+        <input id="s-plate-api-url" placeholder="https://sua-api-de-placas.com/consulta/{placa}">
+      </div>
+      <div class="field">
+        <label>Chave/Token (se a API pedir)</label>
+        <input id="s-plate-api-key" placeholder="Cole sua chave aqui">
+      </div>
+      <div class="help-txt">Nenhuma API de placa é gratuita e confiável hoje no Brasil. Esse campo espera uma resposta no formato {"data":{"marca":"...","modelo":"...","ano":"..."}}; se o seu provedor devolver em outro formato, pode ser preciso ajustar o código.</div>
+    </div>
+    <div class="card">
+      <h2>Consulta de CPF (opcional)</h2>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;">
+        <input type="checkbox" id="s-cpf-api-on" style="width:18px;height:18px;">
+        Ativar preenchimento automático por CPF
+      </label>
+      <div class="field" style="margin-top:8px;">
+        <label>URL da API</label>
+        <input id="s-cpf-api-url" placeholder="https://sua-api-de-cpf.com/consulta/{cpf}">
+      </div>
+      <div class="field">
+        <label>Chave/Token (deixe em branco se a API não pedir)</label>
+        <input id="s-cpf-api-key" placeholder="Cole sua chave aqui, se houver">
+      </div>
+      <div class="help-txt">Antes de ativar: confirme que o serviço tem CNPJ verificável e política de privacidade citando a LGPD. O app tenta ler nome e data de nascimento em vários formatos comuns de resposta (nome/name, data_nascimento/nascimento/birthdate), no JSON raiz ou dentro de "data"/"result". Se não encontrar automaticamente, você preenche manualmente.</div>
+    </div>
+    <div class="card">
+      <h2>Backup</h2>
+      <button class="btn-ghost" style="width:100%;margin-bottom:8px;" onclick="exportBackup()">Exportar backup (arquivo .json)</button>
+      <button class="btn-ghost" style="width:100%;" onclick="document.getElementById('restoreFile').click()">Restaurar backup</button>
+      <input type="file" id="restoreFile" accept="application/json" style="display:none">
+      <div class="help-txt">Salve o arquivo exportado no Google Drive, OneDrive ou onde preferir. Para restaurar, escolha o arquivo salvo.</div>
+    </div>
+    <div style="padding:0 14px 24px;">
       <button class="btn-primary" style="width:100%;" onclick="saveSettings()">Salvar configurações</button>
     </div>
   </div>
@@ -222,22 +274,71 @@
 function getSettings(){
   return {
     webappUrl: localStorage.getItem('cfg_webapp_url') || '',
-    mechanicEmail: localStorage.getItem('cfg_mechanic_email') || 'fernandoalvesrodrigues28@gmail.com'
+    mechanicEmail: localStorage.getItem('cfg_mechanic_email') || 'fernandoalvesrodrigues28@gmail.com',
+    whatsappAuto: localStorage.getItem('cfg_whatsapp_auto') === '1',
+    plateApiOn: localStorage.getItem('cfg_plate_api_on') === '1',
+    plateApiUrl: localStorage.getItem('cfg_plate_api_url') || '',
+    plateApiKey: localStorage.getItem('cfg_plate_api_key') || '',
+    cpfApiOn: localStorage.getItem('cfg_cpf_api_on') === '1',
+    cpfApiUrl: localStorage.getItem('cfg_cpf_api_url') || '',
+    cpfApiKey: localStorage.getItem('cfg_cpf_api_key') || ''
   };
 }
 function openSettings(){
   const s = getSettings();
   document.getElementById('s-webapp').value = s.webappUrl;
   document.getElementById('s-mechanic-email').value = s.mechanicEmail;
+  document.getElementById('s-whatsapp-auto').checked = s.whatsappAuto;
+  document.getElementById('s-plate-api-on').checked = s.plateApiOn;
+  document.getElementById('s-plate-api-url').value = s.plateApiUrl;
+  document.getElementById('s-plate-api-key').value = s.plateApiKey;
+  document.getElementById('s-cpf-api-on').checked = s.cpfApiOn;
+  document.getElementById('s-cpf-api-url').value = s.cpfApiUrl;
+  document.getElementById('s-cpf-api-key').value = s.cpfApiKey;
   document.getElementById('settings').classList.add('open');
 }
 function closeSettings(){ document.getElementById('settings').classList.remove('open'); }
 function saveSettings(){
   localStorage.setItem('cfg_webapp_url', document.getElementById('s-webapp').value.trim());
   localStorage.setItem('cfg_mechanic_email', document.getElementById('s-mechanic-email').value.trim());
+  localStorage.setItem('cfg_whatsapp_auto', document.getElementById('s-whatsapp-auto').checked ? '1' : '0');
+  localStorage.setItem('cfg_plate_api_on', document.getElementById('s-plate-api-on').checked ? '1' : '0');
+  localStorage.setItem('cfg_plate_api_url', document.getElementById('s-plate-api-url').value.trim());
+  localStorage.setItem('cfg_plate_api_key', document.getElementById('s-plate-api-key').value.trim());
+  localStorage.setItem('cfg_cpf_api_on', document.getElementById('s-cpf-api-on').checked ? '1' : '0');
+  localStorage.setItem('cfg_cpf_api_url', document.getElementById('s-cpf-api-url').value.trim());
+  localStorage.setItem('cfg_cpf_api_key', document.getElementById('s-cpf-api-key').value.trim());
   showToast('Configurações salvas.');
   closeSettings();
 }
+
+/* ============ BACKUP MANUAL ============ */
+async function exportBackup(){
+  try{
+    const all = await dbGetAll();
+    const blob = new Blob([JSON.stringify({exportedAt:new Date().toISOString(), inspecoes:all}, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `backup-vistorias-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    showToast('Backup exportado. Salve o arquivo no Drive/OneDrive.');
+  }catch(e){ console.error(e); showToast('Erro ao exportar backup.'); }
+}
+document.getElementById('restoreFile').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const list = parsed.inspecoes || parsed;
+    if(!Array.isArray(list)) throw new Error('Formato inválido');
+    if(!confirm(`Restaurar ${list.length} vistoria(s) deste backup? Registros com o mesmo ID serão substituídos.`)) return;
+    for(const rec of list){ await dbPut(rec); }
+    showToast('Backup restaurado com sucesso.');
+    renderHistory();
+  }catch(err){ console.error(err); showToast('Erro ao restaurar backup: arquivo inválido.'); }
+  e.target.value = '';
+});
 
 /* ============ DADOS DO CHECKLIST ============ */
 const GROUPS = [
@@ -246,39 +347,63 @@ const GROUPS = [
   { key:'acessorios', title:'Acessórios Obrigatórios' }
 ];
 
+const PAIR_ED = ['OK ambos','Esquerdo com problema','Direito com problema','Ambos com problema'];
 const CATEGORIES = [
   { key:'vidros', group:'externo', title:'Vidros', statusOptions:['OK','Trincado','Quebrado','Arranhado'],
-    items:[{name:'Parabrisa dianteiro'},{name:'Parabrisa traseiro'},{name:'Vidro lateral dianteiro esquerdo'},{name:'Vidro lateral dianteiro direito'},{name:'Vidro lateral traseiro esquerdo'},{name:'Vidro lateral traseiro direito'}] },
+    items:[
+      {name:'Parabrisa dianteiro'},{name:'Parabrisa traseiro'},
+      {name:'Vidros laterais dianteiros (E/D)', options:PAIR_ED},
+      {name:'Vidros laterais traseiros (E/D)', options:PAIR_ED}
+    ]},
   { key:'lataria', group:'externo', title:'Lataria', statusOptions:['OK','Arranhado','Amassado','Batida'],
-    items:[{name:'Capô'},{name:'Teto externo'},{name:'Porta dianteira esquerda'},{name:'Porta dianteira direita'},{name:'Porta traseira esquerda'},{name:'Porta traseira direita'},{name:'Paralama dianteiro esquerdo'},{name:'Paralama dianteiro direito'},{name:'Paralama traseiro esquerdo'},{name:'Paralama traseiro direito'},{name:'Tampa traseira / porta-malas'},{name:'Para-choque dianteiro'},{name:'Para-choque traseiro'}] },
+    items:[
+      {name:'Capô'},{name:'Teto externo'},
+      {name:'Portas dianteiras (E/D)', options:PAIR_ED},
+      {name:'Portas traseiras (E/D)', options:PAIR_ED},
+      {name:'Paralamas dianteiros (E/D)', options:PAIR_ED},
+      {name:'Paralamas traseiros (E/D)', options:PAIR_ED},
+      {name:'Tampa traseira / porta-malas'},{name:'Para-choque dianteiro'},{name:'Para-choque traseiro'}
+    ]},
   { key:'iluminacao', group:'externo', title:'Iluminação', statusOptions:['OK','Queimado','Quebrado','Trincado'],
-    items:[{name:'Farol dianteiro esquerdo'},{name:'Farol dianteiro direito'},{name:'Lanterna traseira esquerda'},{name:'Lanterna traseira direita'},{name:'Luz de freio'},{name:'Luz de ré'},{name:'Pisca dianteiro esquerdo'},{name:'Pisca dianteiro direito'},{name:'Pisca traseiro esquerdo'},{name:'Pisca traseiro direito'},{name:'Luz de placa'}] },
+    items:[
+      {name:'Faróis dianteiros (E/D)', options:PAIR_ED},
+      {name:'Lanternas traseiras (E/D)', options:PAIR_ED},
+      {name:'Luz de freio'},{name:'Luz de ré'},
+      {name:'Piscas dianteiros (E/D)', options:PAIR_ED},
+      {name:'Piscas traseiros (E/D)', options:PAIR_ED},
+      {name:'Luz de placa'}
+    ]},
   { key:'rodas', group:'externo', title:'Rodas e pneus', statusOptions:['OK','Desgastado','Danificado'],
     items:[
-      {name:'Pneu dianteiro esquerdo', options:['OK','Careca','Bolha ou corte','Murcho']},
-      {name:'Pneu dianteiro direito', options:['OK','Careca','Bolha ou corte','Murcho']},
-      {name:'Pneu traseiro esquerdo', options:['OK','Careca','Bolha ou corte','Murcho']},
-      {name:'Pneu traseiro direito', options:['OK','Careca','Bolha ou corte','Murcho']},
+      {name:'Pneus dianteiros (E/D)', options:PAIR_ED},
+      {name:'Pneus traseiros (E/D)', options:PAIR_ED},
       {name:'Rodas / calotas', options:['OK','Amassada','Trincada','Faltando']}
     ]},
   { key:'ext-outros', group:'externo', title:'Outros itens externos', statusOptions:['OK','Danificado','Desgastado','Ausente'],
-    items:[{name:'Retrovisor esquerdo'},{name:'Retrovisor direito'},{name:'Antena'},{name:'Palhetas do limpador'}] },
+    items:[{name:'Retrovisores (E/D)', options:PAIR_ED},{name:'Antena'},{name:'Palhetas do limpador'}] },
 
   { key:'estofados', group:'interno', title:'Estofados e revestimento', statusOptions:['OK','Manchado','Rasgado','Sujo'],
-    items:[{name:'Banco dianteiro motorista'},{name:'Banco dianteiro passageiro'},{name:'Banco traseiro'},{name:'Forro do teto'},{name:'Carpete / tapetes'}] },
+    items:[
+      {name:'Bancos dianteiros (motorista/passageiro)', options:['OK ambos','Motorista com problema','Passageiro com problema','Ambos com problema']},
+      {name:'Banco traseiro'},{name:'Forro do teto'},{name:'Carpete / tapetes'}
+    ]},
   { key:'eletricos', group:'interno', title:'Elétrica e comandos', statusOptions:['Funciona','Não funciona','Não possui'],
-    items:[{name:'Ar condicionado'},{name:'Vidro elétrico dianteiro esquerdo'},{name:'Vidro elétrico dianteiro direito'},{name:'Vidro elétrico traseiro esquerdo'},{name:'Vidro elétrico traseiro direito'},{name:'Trava elétrica'},{name:'Som / multimídia'},{name:'Direção assistida'}] },
+    items:[
+      {name:'Ar condicionado'},
+      {name:'Vidros elétricos dianteiros (E/D)', options:['Funciona ambos','Esquerdo não funciona','Direito não funciona','Nenhum funciona']},
+      {name:'Vidros elétricos traseiros (E/D)', options:['Funciona ambos','Esquerdo não funciona','Direito não funciona','Nenhum funciona']},
+      {name:'Trava elétrica'},{name:'Som / multimídia'},{name:'Direção assistida'}
+    ]},
   { key:'seguranca', group:'interno', title:'Segurança interna', statusOptions:['OK','Danificado','Ausente'],
-    items:[{name:'Cinto dianteiro esquerdo'},{name:'Cinto dianteiro direito'},{name:'Cinto traseiro'}] },
+    items:[{name:'Cintos dianteiros (E/D)', options:PAIR_ED},{name:'Cinto traseiro'}] },
   { key:'combustivel', group:'interno', title:'Combustível', statusOptions:['Cheio','3/4','1/2','1/4','Reserva'], informational:true,
     items:[{name:'Nível de combustível na entrada'}] },
   { key:'luzes-painel', group:'interno', title:'Luzes de advertência do painel', statusOptions:['Apagada','Acesa'],
     items:[{name:'Óleo'},{name:'Bateria'},{name:'Temperatura do motor'},{name:'Freio / ABS'},{name:'Injeção eletrônica (check engine)'},{name:'Airbag'},{name:'Combustível (reserva)'},{name:'Freio de estacionamento'},{name:'Correia dentada'},{name:'Outra luz acesa (ver observação)'}] },
   { key:'obs-gerais', group:'interno', title:'Observações gerais', informational:true, freeText:true,
     items:[
-      {name:'Marca da bateria', placeholder:'Ex: Moura, Heliar, Zetta...'},
+      {name:'Marca da bateria', placeholder:'Ex: Moura, Heliar...', short:true},
       {name:'Vazamentos identificados', placeholder:'Ex: óleo no motor, arrefecimento, direção...'},
-      {name:'Estado das palhetas do limpador', placeholder:'Ex: ressecadas, riscando o vidro, novas...'},
       {name:'Outras observações', placeholder:'Qualquer outro ponto relevante sobre o veículo'}
     ]},
 
@@ -288,8 +413,20 @@ const CATEGORIES = [
 ];
 
 function getOptions(cat, item){ return item.options || cat.statusOptions; }
+function formatDateBR(v){
+  if(!v) return '';
+  const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : v;
+}
+function formatDateTimeBR(v){
+  if(!v) return '-';
+  const d = new Date(v);
+  if(isNaN(d.getTime())) return v;
+  const pad = n => String(n).padStart(2,'0');
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 function classify(status){
-  if(status.startsWith('OK') || status.startsWith('Presente') || status==='Funciona' || status==='Apagada') return 'sel-ok';
+  if(status.startsWith('OK') || status.startsWith('Presente') || status.startsWith('Funciona') || status==='Apagada') return 'sel-ok';
   if(['Desgastado','Sujo','Não possui','Murcho'].includes(status)) return 'sel-neutral';
   return 'sel-problem';
 }
@@ -301,6 +438,11 @@ let currentDetailId = null;
 
 function slug(s){ return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-'); }
 
+function nowLocalDatetime(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 function blankState(){
   const items = {};
   CATEGORIES.forEach(cat=>{
@@ -308,8 +450,8 @@ function blankState(){
     cat.items.forEach(it=>{ items[cat.key][it.name] = { status: cat.freeText ? 'Informado' : getOptions(cat,it)[0], note:'', photos:[] }; });
   });
   return {
-    plate:'', km:'', model:'', color:'', mechanic:'', date:new Date().toISOString().slice(0,10),
-    cliente:{ nome:'', cpf:'', tel:'', email:'', cep:'', numero:'', endereco:'', cidade:'' },
+    plate:'', km:'', model:'', color:'', mechanic:'', date:nowLocalDatetime(),
+    cliente:{ nome:'', cpf:'', nascimento:'', tel:'', email:'', cep:'', numero:'', endereco:'', cidade:'' },
     items, signature:null, approvedAt:null
   };
 }
@@ -336,10 +478,13 @@ function renderChecklist(){
         const rowId='row-'+slug(cat.key+'-'+name);
         const row=document.createElement('div'); row.className='item-row'; row.id=rowId;
         if(cat.freeText){
+          const fieldHtml = it.short
+            ? `<input type="text" style="max-width:220px;" placeholder="${it.placeholder||''}" data-note-input="${encodeURIComponent(name)}" data-cat="${cat.key}">`
+            : `<div class="note-box open"><textarea placeholder="${it.placeholder||'Observação...'}" data-note-input="${encodeURIComponent(name)}" data-cat="${cat.key}"></textarea></div>`;
           row.innerHTML = `
             <div class="item-name">${name}</div>
-            <div class="note-box open"><textarea placeholder="${it.placeholder||'Observação...'}" data-note-input="${encodeURIComponent(name)}" data-cat="${cat.key}"></textarea></div>
-            <div class="item-extra">
+            ${fieldHtml}
+            <div class="item-extra" style="margin-top:8px;">
               <button type="button" class="icon-btn" data-photo-cam="${encodeURIComponent(name)}" data-cat="${cat.key}">Câmera</button>
               <button type="button" class="icon-btn" data-photo-gal="${encodeURIComponent(name)}" data-cat="${cat.key}">Galeria</button>
             </div>
@@ -479,7 +624,7 @@ document.getElementById('c-tel').addEventListener('input', e=>{ e.target.value =
     if(id==='f-plate') refreshCounters();
   });
 });
-const clienteFieldMap = {'c-nome':'nome','c-email':'email','c-cep':'cep','c-numero':'numero','c-endereco':'endereco','c-cidade':'cidade'};
+const clienteFieldMap = {'c-nome':'nome','c-nascimento':'nascimento','c-email':'email','c-cep':'cep','c-numero':'numero','c-endereco':'endereco','c-cidade':'cidade'};
 Object.keys(clienteFieldMap).forEach(id=>{
   document.getElementById(id).addEventListener('input', ()=>{ state.cliente[clienteFieldMap[id]] = document.getElementById(id).value; });
 });
@@ -551,6 +696,64 @@ document.getElementById('f-ano').addEventListener('change', (e)=>{
   refreshCounters();
 });
 loadMarcas();
+
+/* ============ CONSULTA DE PLACA (opcional, via API paga configurada em ⚙) ============ */
+document.getElementById('f-plate').addEventListener('blur', async ()=>{
+  const cfg = getSettings();
+  const plate = state.plate.trim();
+  if(!cfg.plateApiOn || !cfg.plateApiUrl || !plate) return;
+  try{
+    const url = cfg.plateApiUrl.replace('{placa}', encodeURIComponent(plate));
+    const headers = cfg.plateApiKey ? {'Authorization':'Bearer '+cfg.plateApiKey, 'x-api-key':cfg.plateApiKey} : {};
+    const r = await fetch(url, {headers});
+    const json = await r.json();
+    const d = json.data || json;
+    if(d && (d.marca || d.modelo)){
+      const combined = `${d.marca||''} ${d.modelo||''}${d.ano||d.anoModelo?(' ('+(d.ano||d.anoModelo)+')'):''}`.trim();
+      document.getElementById('f-model').value = combined;
+      state.model = combined;
+      if(d.cor && !state.color){ document.getElementById('f-color').value = d.cor; state.color = d.cor; }
+      showToast('Dados do veículo preenchidos pela placa.');
+    }
+  }catch(e){ console.error('Consulta de placa falhou', e); /* silencioso: mecânico preenche manualmente */ }
+});
+
+/* ============ CONSULTA DE CPF (opcional, via API configurada em ⚙) ============ */
+function pickField(obj, keys){
+  if(!obj) return null;
+  for(const container of [obj, obj.data, obj.result, obj.resultado]){
+    if(!container) continue;
+    for(const k of keys){ if(container[k]) return container[k]; }
+  }
+  return null;
+}
+document.getElementById('c-cpf').addEventListener('blur', async ()=>{
+  const cfg = getSettings();
+  const cpfDigits = state.cliente.cpf.replace(/\D/g,'');
+  if(!cfg.cpfApiOn || !cfg.cpfApiUrl || cpfDigits.length!==11) return;
+  try{
+    const url = cfg.cpfApiUrl.replace('{cpf}', encodeURIComponent(cpfDigits));
+    const headers = cfg.cpfApiKey ? {'Authorization':'Bearer '+cfg.cpfApiKey, 'x-api-key':cfg.cpfApiKey} : {};
+    const r = await fetch(url, {headers});
+    const json = await r.json();
+    const nome = pickField(json, ['nome','name','nome_completo','nomeCompleto']);
+    const nascimento = pickField(json, ['data_nascimento','nascimento','dataNascimento','birthdate','birth_date']);
+    let preenchido = false;
+    if(nome && !state.cliente.nome){ document.getElementById('c-nome').value = nome; state.cliente.nome = nome; preenchido = true; }
+    if(nascimento && !state.cliente.nascimento){
+      const norm = normalizeDateForInput(nascimento);
+      if(norm){ document.getElementById('c-nascimento').value = norm; state.cliente.nascimento = norm; preenchido = true; }
+    }
+    if(preenchido) showToast('Dados do cliente preenchidos pelo CPF.');
+  }catch(e){ console.error('Consulta de CPF falhou', e); /* silencioso: mecânico preenche manualmente */ }
+});
+function normalizeDateForInput(v){
+  // aceita "dd/mm/aaaa" ou "aaaa-mm-dd" e devolve sempre "aaaa-mm-dd" (formato do <input type=date>)
+  if(/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0,10);
+  const m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(m) return `${m[3]}-${m[2]}-${m[1]}`;
+  return null;
+}
 
 function resetForm(confirmFirst){
   if(confirmFirst && !confirm('Limpar todos os campos da vistoria atual?')) return;
@@ -645,7 +848,7 @@ async function openDetail(id){
   if(!rec){ showToast('Vistoria não encontrada.'); return; }
   currentDetailId = id;
   document.getElementById('d-plate').textContent = (rec.plate||'—').toUpperCase();
-  document.getElementById('d-meta').textContent = `${rec.model||''} · ${rec.color||''} · ${rec.km?rec.km+' km':''} · ${rec.date||''} · Mecânico: ${rec.mechanic||'-'}`;
+  document.getElementById('d-meta').textContent = `${rec.model||''} · ${rec.color||''} · ${rec.km?rec.km+' km':''} · ${formatDateTimeBR(rec.date)} · Mecânico: ${rec.mechanic||'-'}`;
 
   const body = document.getElementById('detail-body');
   body.innerHTML = '';
@@ -665,7 +868,7 @@ async function openDetail(id){
   clienteCard.innerHTML = `<h2>Cliente</h2>
     <div style="font-size:13px;line-height:1.6;">
       ${rec.cliente.nome||'<em>Nome não informado</em>'}<br>
-      ${rec.cliente.cpf?('CPF: '+rec.cliente.cpf+'<br>'):''}
+      ${rec.cliente.cpf?('CPF: '+rec.cliente.cpf+(rec.cliente.nascimento?' · Nasc: '+formatDateBR(rec.cliente.nascimento):'')+'<br>'):''}
       Tel/WhatsApp: ${rec.cliente.tel||'-'}<br>
       E-mail: ${rec.cliente.email||'-'}<br>
       ${rec.cliente.endereco?(rec.cliente.endereco+(rec.cliente.numero?', '+rec.cliente.numero:'')+'<br>'):''}
@@ -699,7 +902,7 @@ async function openDetail(id){
       </div>
       <div class="share-row">
         <button class="btn-ghost" style="flex:1;" onclick="downloadPdf('${id}')">Baixar PDF</button>
-        <button class="btn-ghost" style="flex:1;" onclick="window.print()">Imprimir</button>
+        <button class="btn-ghost" style="flex:1;" onclick="openPdfForPrint('${id}')">Imprimir</button>
       </div>
       <div class="share-row"><button class="btn-danger" style="flex:1;" onclick="deleteCurrentDetail()">Excluir vistoria</button></div>`;
   }
@@ -745,7 +948,18 @@ async function approveInspection(){
   await dbPut(rec);
   showToast('Vistoria aprovada! Gerando PDF...');
   await openDetail(currentDetailId);
-  sendApprovalEmail(rec);
+  await sendApprovalEmail(rec);
+  const cfg = getSettings();
+  if(cfg.whatsappAuto) openWhatsappForClient(rec);
+}
+
+function buildConfirmLink(rec, cfg){
+  if(!cfg.webappUrl) return '';
+  const p = new URLSearchParams({
+    action:'confirm', id:rec.id, plate:(rec.plate||'').toUpperCase(),
+    clientName:rec.cliente.nome||'', clientEmail:rec.cliente.email||''
+  });
+  return `${cfg.webappUrl}?${p.toString()}`;
 }
 
 /* ============ ENVIO AUTOMÁTICO (Google Apps Script) + WhatsApp ============ */
@@ -784,7 +998,11 @@ function openWhatsappForClient(rec){
   const digits = (rec.cliente.tel||'').replace(/\D/g,'');
   if(!digits){ showToast('Cliente sem telefone cadastrado.'); return; }
   const withCountry = digits.length<=11 ? '55'+digits : digits;
-  const msg = `Olá, ${rec.cliente.nome||''}! Aqui é da ${SHOP_NAME_JS}. Sua vistoria do veículo ${ (rec.plate||'').toUpperCase() } foi aprovada e o PDF assinado já foi enviado para o seu e-mail (${rec.cliente.email||'-'}). Qualquer dúvida estamos à disposição: ${SHOP_PHONES_JS}.`;
+  const cfg = getSettings();
+  const confirmLink = buildConfirmLink(rec, cfg);
+  let msg = `Olá, ${rec.cliente.nome||''}! Aqui é da ${SHOP_NAME_JS}. Sua vistoria do veículo ${ (rec.plate||'').toUpperCase() } foi aprovada e o PDF assinado já foi enviado para o seu e-mail (${rec.cliente.email||'-'}).`;
+  if(confirmLink) msg += `\n\nPor favor confirme que recebeu, tocando aqui: ${confirmLink}`;
+  msg += `\n\nQualquer dúvida estamos à disposição: ${SHOP_PHONES_JS}.`;
   const url = `https://wa.me/${withCountry}?text=${encodeURIComponent(msg)}`;
   window.open(url, '_blank');
 }
@@ -889,12 +1107,12 @@ async function buildPdf(rec){
     [`Modelo: ${rec.model||'-'}`, true],
     [`Cor: ${rec.color||'-'}    KM: ${rec.km||'-'}`, false],
     [`Combustível: ${(rec.items.combustivel && rec.items.combustivel['Nível de combustível na entrada']) ? rec.items.combustivel['Nível de combustível na entrada'].status : '-'}`, false],
-    [`Data: ${rec.date||'-'}`, false],
+    [`Data/hora de chegada: ${formatDateTimeBR(rec.date)}`, false],
     [`Mecânico: ${rec.mechanic||'-'}`, false]
   ];
   const cRaw = [
     [`${rec.cliente.nome||'-'}`, true],
-    [rec.cliente.cpf ? `CPF: ${rec.cliente.cpf}` : '', false],
+    [rec.cliente.cpf ? `CPF: ${rec.cliente.cpf}${rec.cliente.nascimento?'  Nasc: '+formatDateBR(rec.cliente.nascimento):''}` : '', false],
     [`Tel/WhatsApp: ${rec.cliente.tel||'-'}`, false],
     [`E-mail: ${rec.cliente.email||'-'}`, true],
     [`${rec.cliente.endereco||''}${rec.cliente.numero?', '+rec.cliente.numero:''}${rec.cliente.cidade?' - '+rec.cliente.cidade:''}`, true]
@@ -941,12 +1159,11 @@ async function buildPdf(rec){
       if(!cat.informational) cat.items.forEach(it=>{ if(classifyForCat(cat, rec.items[cat.key][it.name].status)==='sel-problem') catProblems++; });
       sectionBar(cat.title, cat.informational?undefined:catProblems);
 
-      cat.items.forEach(it=>{
-        const d = rec.items[cat.key][it.name];
-        if(cat.freeText){
+      if(cat.freeText){
+        cat.items.forEach(it=>{
+          const d = rec.items[cat.key][it.name];
           if(!d.note && !(d.photos&&d.photos.length)) return;
           checkPage(9);
-          doc.setFillColor(...PDF_COLORS.paper2 || [228,221,204]);
           doc.setFont('helvetica','bold'); doc.setFontSize(8.7); doc.setTextColor(...PDF_COLORS.ink);
           doc.text(it.name+':', marginX+3, y+4.2);
           doc.setFont('helvetica','normal'); doc.setFontSize(8.7); doc.setTextColor(60,56,50);
@@ -959,8 +1176,37 @@ async function buildPdf(rec){
             d.photos.slice(0,4).forEach(p=>{ try{ doc.addImage(p,'JPEG',x,y,22,22); }catch(e){} x+=24; });
             y += 25;
           }
-          return;
-        }
+        });
+        y += 3;
+        return;
+      }
+
+      // Itens simples (sem nota/foto) em grade de 2 colunas — economiza espaço
+      const simple = [], detailed = [];
+      cat.items.forEach(it=>{
+        const d = rec.items[cat.key][it.name];
+        (d.note || (d.photos&&d.photos.length)) ? detailed.push(it) : simple.push(it);
+      });
+      const gridColW = (pageW-marginX*2-4)/2;
+      for(let i=0;i<simple.length;i+=2){
+        checkPage(9);
+        [simple[i], simple[i+1]].forEach((it,idx)=>{
+          if(!it) return;
+          const d = rec.items[cat.key][it.name];
+          const cls = classifyForCat(cat, d.status);
+          const {bg,fg} = pdfRowColor(cls);
+          const x = marginX + idx*(gridColW+4);
+          doc.setFillColor(...bg);
+          doc.roundedRect(x, y, gridColW, 7, 1, 1, 'F');
+          doc.setFont('helvetica','normal'); doc.setFontSize(7.8); doc.setTextColor(...PDF_COLORS.ink);
+          doc.text(it.name, x+2.5, y+4.6, {maxWidth: gridColW-25});
+          doc.setFont('helvetica','bold'); doc.setFontSize(7.4); doc.setTextColor(...fg);
+          doc.text(d.status, x+gridColW-2.5, y+4.6, {align:'right', maxWidth:23});
+        });
+        y += 8.2;
+      }
+      detailed.forEach(it=>{
+        const d = rec.items[cat.key][it.name];
         const cls = classifyForCat(cat, d.status);
         const {bg,fg} = pdfRowColor(cls);
         checkPage(9);
@@ -1028,6 +1274,17 @@ async function downloadPdf(id){
   const rec = await dbGet(id);
   const doc = await buildPdf(rec);
   doc.save(`vistoria-${(rec.plate||'veiculo').toUpperCase()}.pdf`);
+}
+
+async function openPdfForPrint(id){
+  const rec = await dbGet(id);
+  const doc = await buildPdf(rec);
+  const blob = doc.output('blob');
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if(!win){ showToast('Permita pop-ups para abrir o PDF, ou use "Baixar PDF".'); return; }
+  // A maioria dos navegadores/Android abre o visualizador de PDF nativo,
+  // que já tem o próprio botão de imprimir/compartilhar.
 }
 
 async function shareViaSystem(id){
